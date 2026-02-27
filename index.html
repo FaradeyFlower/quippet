@@ -215,6 +215,14 @@
         </div>
     </div>
 
+            <div class="switch-row">
+            <span class="switch-label">🎤 Текст песни (AI)</span>
+            <label class="toggle">
+                <input type="checkbox" id="lyricsCheck">
+                <span class="slider"></span>
+            </label>
+        </div>
+
     <button class="main-btn" onclick="sendData()">Сохранить настройки</button>
 
     <script>
@@ -354,7 +362,8 @@
                 color: state.color,
                 vinyl: state.vinyl,
                 shake: state.shake,
-                shake_power: parseInt(state.shakePower)
+                shake_power: parseInt(state.shakePower),
+                lyrics: document.getElementById('lyricsCheck').checked // <--- ДОБАВИЛ
             };
             tg.sendData(JSON.stringify(data));
         }
@@ -362,3 +371,4 @@
     </script>
 </body>
 </html>
+

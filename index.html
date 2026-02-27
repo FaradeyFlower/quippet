@@ -1,66 +1,246 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Настройки Визуалайзера</title>
-    <!-- Подключаем скрипт Телеграма -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Visualizer Settings</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            background-color: var(--tg-theme-bg-color, #fff);
-            color: var(--tg-theme-text-color, #000);
-            font-family: sans-serif;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #1c1c1e);
+            --text-color: var(--tg-theme-text-color, #ffffff);
+            --hint-color: var(--tg-theme-hint-color, #8e8e93);
+            --btn-color: var(--tg-theme-button-color, #007aff);
+            --btn-text: var(--tg-theme-button-text-color, #ffffff);
+            --secondary-bg: var(--tg-theme-secondary-bg-color, #2c2c2e);
         }
 
-        button {
-            background-color: var(--tg-theme-button-color, #3390ec);
-            color: var(--tg-theme-button-text-color, #fff);
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            padding-bottom: 80px; /* Место для кнопки */
+        }
+
+        h3 { margin-top: 0; font-size: 20px; font-weight: 700; margin-bottom: 15px; }
+        .section { margin-bottom: 25px; }
+        .label { font-size: 14px; color: var(--hint-color); margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Карточки выбора режима */
+        .grid-select {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        .option-card {
+            background-color: var(--secondary-bg);
+            border-radius: 12px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .option-card.selected {
+            border-color: var(--btn-color);
+            background-color: rgba(0, 122, 255, 0.1);
+        }
+        .option-icon { font-size: 24px; margin-bottom: 5px; display: block; }
+        .option-name { font-size: 13px; font-weight: 500; }
+
+        /* Color Picker */
+        .color-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--secondary-bg);
+            padding: 10px 15px;
+            border-radius: 12px;
+            justify-content: space-between;
+        }
+        input[type="color"] {
             border: none;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 16px;
+            width: 40px;
+            height: 40px;
+            background: none;
             cursor: pointer;
         }
+
+        /* Toggles (Switch) */
+        .switch-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--secondary-bg);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        .switch-label { font-size: 16px; font-weight: 500; }
+        
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--btn-color); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* Range Slider */
+        .range-container {
+            background: var(--secondary-bg);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 10px;
+            display: none; /* Скрыт по умолчанию */
+        }
+        .range-container.visible { display: block; animation: fadeIn 0.3s; }
+        input[type=range] {
+            width: 100%;
+            margin: 10px 0;
+            accent-color: var(--btn-color);
+        }
+        .range-val { font-size: 12px; color: var(--hint-color); float: right; }
+
+        /* Main Button */
+        .main-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background-color: var(--btn-color);
+            color: var(--btn-text);
+            padding: 16px;
+            border-radius: 14px;
+            text-align: center;
+            font-size: 17px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .main-btn:active { transform: scale(0.98); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-
 <body>
-    <h3>🎨 Настрой свой клип</h3>
 
-    <label>Цвет спектра:</label>
-    <input type="color" id="colorPicker" value="#ffffff">
+    <div class="section">
+        <span class="label">Вид визуализации</span>
+        <div class="grid-select">
+            <div class="option-card selected" onclick="selectMode('spectrum')" id="card-spectrum">
+                <span class="option-icon">📊</span>
+                <span class="option-name">Спектр</span>
+            </div>
+            <div class="option-card" onclick="selectMode('bar')" id="card-bar">
+                <span class="option-icon">➖</span>
+                <span class="option-name">Линия</span>
+            </div>
+            <div class="option-card" onclick="selectMode('circle')" id="card-circle">
+                <span class="option-icon">⭕️</span>
+                <span class="option-name">Круг</span>
+            </div>
+        </div>
+    </div>
 
-    <label>
-        <input type="checkbox" id="vinylCheck"> 💿 Режим Винила
-    </label>
+    <div class="section">
+        <span class="label">Цвет волны</span>
+        <div class="color-wrapper">
+            <span>Выберите цвет</span>
+            <input type="color" id="colorPicker" value="#ffffff">
+        </div>
+    </div>
 
-    <button onclick="sendData()">Создать видео</button>
+    <div class="section">
+        <span class="label">Эффекты</span>
+        
+        <div class="switch-row">
+            <span class="switch-label">💿 Режим Винила</span>
+            <label class="toggle">
+                <input type="checkbox" id="vinylCheck">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="switch-row">
+            <span class="switch-label">🫨 Тряска камеры (Shake)</span>
+            <label class="toggle">
+                <input type="checkbox" id="shakeCheck" onchange="toggleShakeSettings()">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="range-container" id="shakeSettings">
+            <span class="label" style="margin-bottom: 5px;">Сила тряски <span id="shakeVal" class="range-val">20</span></span>
+            <input type="range" min="5" max="50" value="20" id="shakeRange" oninput="document.getElementById('shakeVal').innerText = this.value">
+        </div>
+    </div>
+
+    <button class="main-btn" onclick="sendData()">Сохранить настройки</button>
 
     <script>
-        // Инициализация
         let tg = window.Telegram.WebApp;
-        tg.expand(); // Раскрыть на весь экран
+        tg.expand();
+
+        let currentMode = 'spectrum';
+
+        function selectMode(mode) {
+            currentMode = mode;
+            // Снимаем выделение со всех
+            document.querySelectorAll('.option-card').forEach(el => el.classList.remove('selected'));
+            // Ставим на выбранный
+            document.getElementById('card-' + mode).classList.add('selected');
+        }
+
+        function toggleShakeSettings() {
+            let isChecked = document.getElementById('shakeCheck').checked;
+            let settings = document.getElementById('shakeSettings');
+            if (isChecked) {
+                settings.classList.add('visible');
+            } else {
+                settings.classList.remove('visible');
+            }
+        }
 
         function sendData() {
             let color = document.getElementById("colorPicker").value;
             let isVinyl = document.getElementById("vinylCheck").checked;
+            let isShake = document.getElementById("shakeCheck").checked;
+            let shakeIntensity = document.getElementById("shakeRange").value;
 
-            // Формируем данные для отправки боту
-            let data = JSON.stringify({
+            let data = {
+                mode: currentMode,
                 color: color,
-                vinyl: isVinyl
-            });
+                vinyl: isVinyl,
+                shake: isShake,
+                shake_power: parseInt(shakeIntensity)
+            };
 
-            // Отправляем данные обратно в бота
-            tg.sendData(data);
+            tg.sendData(JSON.stringify(data));
         }
     </script>
 </body>
-
 </html>

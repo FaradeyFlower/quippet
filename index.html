@@ -71,8 +71,9 @@
             display: none;
         }
 
+        /* 🔥 ИСПРАВЛЕНИЕ: !important заставляет быть кругом всегда */
         .preview-cover.vinyl {
-            border-radius: 50%;
+            border-radius: 50% !important;
             animation: spin 4s linear infinite;
         }
         .preview-cover.vinyl::after { display: block; }
@@ -164,14 +165,14 @@
             </div>
         </div>
 
-        <div class="range-box visible" style="margin-top: 10px;">
+        <!-- Добавили ID чтобы скрывать этот блок -->
+        <div class="range-box visible" style="margin-top: 10px;" id="roundContainer">
             <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;">
                 <span>Скругление углов</span> <span id="roundVal">20</span>
             </div>
             <input type="range" min="0" max="150" value="20" id="roundRange" oninput="updateRound(this.value)">
         </div>
 
-        <!-- НОВЫЙ СЛАЙДЕР ПАЛОЧЕК -->
         <div class="range-box visible" style="margin-top: 10px;">
             <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;">
                 <span>Плотность (Кол-во полос)</span> <span id="barsVal">25</span>
@@ -228,7 +229,7 @@
             vinyl: false,
             shake: false,
             shakePower: 20,
-            bars: 25, // Количество палочек
+            bars: 25, 
             round: 20 
         };
 
@@ -260,11 +261,9 @@
 
             // Draw
             if (state.mode === 'spectrum') {
-                const bars = state.bars; // ИСПОЛЬЗУЕМ НАСТРОЙКУ
-                const gap = 2; // Маленький отступ
+                const bars = state.bars;
+                const gap = 2;
                 const barW = (canvas.width - (gap * (bars - 1))) / bars;
-                
-                // Центрируем
                 const totalW = bars * barW + (bars-1) * gap;
                 const startX = (canvas.width - totalW) / 2;
 
@@ -286,12 +285,12 @@
                 const radius = (canvas.width * 0.6) / 2 + 10;
                 
                 ctx.lineWidth = 3;
-                const lines = state.bars; // ИСПОЛЬЗУЕМ НАСТРОЙКУ
+                const lines = state.bars;
                 const step = (Math.PI * 2) / lines;
 
                 for (let i = 0; i < lines; i++) {
                     const len = Math.random() * 20 + 5;
-                    const angle = i * step - (Math.PI / 2); // -90 deg
+                    const angle = i * step - (Math.PI / 2);
                     
                     const x1 = cx + Math.cos(angle) * radius;
                     const y1 = cy + Math.sin(angle) * radius;
@@ -320,8 +319,10 @@
         function updateRound(val) {
             state.round = parseInt(val);
             document.getElementById('roundVal').innerText = val;
-    // Визуально меняем превью (делим на 4 для масштаба превью)
-            coverEl.style.borderRadius = (val / 4) + 'px';
+            // Если включен винил, не меняем бордер-радиус (остается круг)
+            if (!state.vinyl) {
+                coverEl.style.borderRadius = (val / 4) + 'px';
+            }
         }
 
         function updateColor(val) { state.color = val; }
@@ -329,6 +330,17 @@
         function toggleVinyl() {
             state.vinyl = document.getElementById('vinylCheck').checked;
             coverEl.classList.toggle('vinyl', state.vinyl);
+            
+            // 🔥 СКРЫВАЕМ НАСТРОЙКУ УГЛОВ, ЕСЛИ ВКЛЮЧЕН ВИНИЛ
+            const roundBox = document.getElementById('roundContainer');
+            if(state.vinyl) {
+                roundBox.style.display = 'none';
+                coverEl.style.borderRadius = ''; // Сброс инлайн стиля
+            } else {
+                roundBox.style.display = 'block';
+                // Возвращаем как было
+                coverEl.style.borderRadius = (state.round / 4) + 'px';
+            }
         }
 
         function toggleShake() {
@@ -353,7 +365,7 @@
                 vinyl: state.vinyl,
                 shake: state.shake,
                 shake_power: parseInt(state.shakePower),
-                bars: parseInt(state.bars), // Отправляем новое значение
+                bars: parseInt(state.bars), 
                 round: parseInt(state.round)
             };
             tg.sendData(JSON.stringify(data));
@@ -361,6 +373,3 @@
     </script>
 </body>
 </html>
-
-
-

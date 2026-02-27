@@ -317,6 +317,13 @@
             document.getElementById('btn-' + mode).classList.add('selected');
         }
 
+        function updateRound(val) {
+            state.round = parseInt(val);
+            document.getElementById('roundVal').innerText = val;
+    // Визуально меняем превью (делим на 4 для масштаба превью)
+            coverEl.style.borderRadius = (val / 4) + 'px';
+        }
+
         function updateColor(val) { state.color = val; }
 
         function toggleVinyl() {
@@ -346,12 +353,14 @@
                 vinyl: state.vinyl,
                 shake: state.shake,
                 shake_power: parseInt(state.shakePower),
-                bars: parseInt(state.bars) // Отправляем новое значение
+                bars: parseInt(state.bars), // Отправляем новое значение
+                round: parseInt(state.round)
             };
             tg.sendData(JSON.stringify(data));
         }
     </script>
 </body>
 </html>
+
 
 

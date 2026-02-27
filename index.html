@@ -164,6 +164,13 @@
             </div>
         </div>
 
+        <div class="range-box visible" style="margin-top: 10px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;">
+                <span>Скругление углов</span> <span id="roundVal">20</span>
+            </div>
+            <input type="range" min="0" max="150" value="20" id="roundRange" oninput="updateRound(this.value)">
+        </div>
+
         <!-- НОВЫЙ СЛАЙДЕР ПАЛОЧЕК -->
         <div class="range-box visible" style="margin-top: 10px;">
             <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;">
@@ -345,3 +352,4 @@
     </script>
 </body>
 </html>
+

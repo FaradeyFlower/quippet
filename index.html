@@ -23,10 +23,10 @@
             padding-bottom: 90px;
         }
 
-        /* --- ПРЕВЬЮ (ЭКРАН ТЕЛЕФОНА) --- */
+        /* --- ПРЕВЬЮ --- */
         .preview-container {
             width: 100%;
-            max-width: 260px; /* Чтобы влезало на экран */
+            max-width: 260px;
             aspect-ratio: 9/16;
             background: linear-gradient(45deg, #333, #111);
             margin: 0 auto 20px auto;
@@ -38,7 +38,6 @@
             transition: transform 0.1s;
         }
 
-        /* Фоновая картинка (размытая) */
         .preview-bg {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -47,7 +46,6 @@
             z-index: 0;
         }
 
-        /* Обложка (Винил или Квадрат) */
         .preview-cover {
             width: 60%;
             aspect-ratio: 1;
@@ -57,12 +55,11 @@
             transform: translate(-50%, -50%);
             z-index: 2;
             box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-            background-image: url('https://upload.wikimedia.org/wikipedia/commons/b/b2/A_black_background.jpg'); /* Заглушка */
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/b/b2/A_black_background.jpg');
             background-size: cover;
             transition: border-radius 0.3s;
         }
 
-        /* Дырка для винила */
         .preview-cover::after {
             content: '';
             position: absolute;
@@ -71,7 +68,7 @@
             background: #111;
             border-radius: 50%;
             transform: translate(-50%, -50%);
-            display: none; /* Скрыта по умолчанию */
+            display: none;
         }
 
         .preview-cover.vinyl {
@@ -82,37 +79,25 @@
 
         @keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
 
-        /* Canvas для визуализации */
         #vizCanvas {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 3;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3;
         }
 
-        /* Текст (Artist - Track) */
         .preview-text {
-            position: absolute;
-            top: 65%; width: 100%;
-            text-align: center;
-            z-index: 4;
+            position: absolute; top: 65%; width: 100%; text-align: center; z-index: 4;
         }
         .p-artist { font-size: 12px; font-weight: bold; color: white; }
         .p-track { font-size: 10px; color: #ddd; margin-top: 2px; }
 
-        /* --- ЭЛЕМЕНТЫ УПРАВЛЕНИЯ --- */
+        /* --- UI --- */
         .label { font-size: 13px; color: var(--hint-color); text-transform: uppercase; margin-bottom: 8px; display: block; font-weight: 600; }
         .section { margin-bottom: 20px; }
 
         .grid-select { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .card {
             background: var(--secondary-bg);
-            border-radius: 10px;
-            padding: 10px;
-            text-align: center;
-            cursor: pointer;
-            border: 2px solid transparent;
-            font-size: 12px;
+            border-radius: 10px; padding: 10px; text-align: center;
+            cursor: pointer; border: 2px solid transparent; font-size: 12px;
         }
         .card.selected { border-color: var(--btn-color); background: rgba(0, 122, 255, 0.15); }
         .card-icon { font-size: 20px; display: block; margin-bottom: 4px; }
@@ -129,7 +114,6 @@
         }
         .switch-label { font-size: 15px; }
 
-        /* Toggle CSS */
         .toggle { position: relative; display: inline-block; width: 46px; height: 26px; }
         .toggle input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; border-radius: 34px; transition: .4s; }
@@ -139,7 +123,7 @@
 
         .range-box { background: var(--secondary-bg); padding: 15px; border-radius: 10px; display: none; margin-top: 8px; }
         .range-box.visible { display: block; animation: fadeIn 0.3s; }
-        input[type=range] { width: 100%; accent-color: var(--btn-color); }
+        input[type=range] { width: 100%; accent-color: var(--btn-color); margin-top: 10px;}
 
         .main-btn {
             position: fixed; bottom: 15px; left: 15px; right: 15px;
@@ -179,6 +163,15 @@
                 <span class="card-icon">⭕️</span> Круг
             </div>
         </div>
+
+        <!-- НОВЫЙ СЛАЙДЕР ПАЛОЧЕК -->
+        <div class="range-box visible" style="margin-top: 10px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;">
+                <span>Плотность (Кол-во полос)</span> <span id="barsVal">25</span>
+            </div>
+            <input type="range" min="10" max="60" value="25" id="barsRange" oninput="updateBars(this.value)">
+        </div>
+
     </div>
 
     <div class="section">
@@ -215,7 +208,6 @@
         </div>
     </div>
 
-    
     <button class="main-btn" onclick="sendData()">Сохранить настройки</button>
 
     <script>
@@ -228,7 +220,8 @@
             color: '#ffffff',
             vinyl: false,
             shake: false,
-            shakePower: 20
+            shakePower: 20,
+            bars: 25 // Количество палочек
         };
 
         // Elements
@@ -237,59 +230,60 @@
         const coverEl = document.getElementById('coverEl');
         const previewBox = document.getElementById('previewBox');
 
-        // Init Canvas Resolution
         function resizeCanvas() {
             canvas.width = previewBox.clientWidth;
             canvas.height = previewBox.clientHeight;
         }
         resizeCanvas();
 
-        // --- ANIMATION LOOP ---
+        // --- ANIMATION ---
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = state.color;
             ctx.strokeStyle = state.color;
 
-            // Shake Simulation
+            // Shake
             if (state.shake && Math.random() > 0.8) {
-                const offset = (Math.random() - 0.5) * (state.shakePower / 3); // Делим на 3, т.к. в превью тряска должна быть слабее
+                const offset = (Math.random() - 0.5) * (state.shakePower / 3); 
                 previewBox.style.transform = `translate(${offset}px, ${offset}px)`;
             } else {
                 previewBox.style.transform = `none`;
             }
 
-            // Draw Visualizers
+            // Draw
             if (state.mode === 'spectrum') {
-                const bars = 20;
-                const gap = 4;
+                const bars = state.bars; // ИСПОЛЬЗУЕМ НАСТРОЙКУ
+                const gap = 2; // Маленький отступ
                 const barW = (canvas.width - (gap * (bars - 1))) / bars;
                 
+                // Центрируем
+                const totalW = bars * barW + (bars-1) * gap;
+                const startX = (canvas.width - totalW) / 2;
+
                 for (let i = 0; i < bars; i++) {
-                    // Random height simulation
                     const h = Math.random() * 50 + 10; 
-                    const x = i * (barW + gap);
-                    const y = canvas.height * 0.85; // Позиция снизу (85%)
+                    const x = startX + i * (barW + gap);
+                    const y = canvas.height * 0.85; 
                     ctx.fillRect(x, y - h, barW, h);
                 }
             } 
             else if (state.mode === 'bar') {
-                // Progress bar simulation
                 const y = canvas.height * 0.85;
-                const w = canvas.width * 0.7; // 70% progress
-                ctx.fillRect(0, y, w, 6);
+                const w = canvas.width * 0.7;
+                ctx.fillRect((canvas.width - w)/2, y, w, 6);
             }
             else if (state.mode === 'circle') {
                 const cx = canvas.width / 2;
-                const cy = canvas.height * 0.4; // Center match with cover (40% from top)
+                const cy = canvas.height * 0.4; 
                 const radius = (canvas.width * 0.6) / 2 + 10;
                 
                 ctx.lineWidth = 3;
-                const lines = 36;
+                const lines = state.bars; // ИСПОЛЬЗУЕМ НАСТРОЙКУ
                 const step = (Math.PI * 2) / lines;
 
                 for (let i = 0; i < lines; i++) {
                     const len = Math.random() * 20 + 5;
-                    const angle = i * step;
+                    const angle = i * step - (Math.PI / 2); // -90 deg
                     
                     const x1 = cx + Math.cos(angle) * radius;
                     const y1 = cy + Math.sin(angle) * radius;
@@ -302,16 +296,11 @@
                     ctx.stroke();
                 }
             }
-
             requestAnimationFrame(draw);
         }
-        
-        // Start Loop
         draw();
 
-
         // --- CONTROLS ---
-
         function setMode(mode) {
             state.mode = mode;
             ['spectrum', 'bar', 'circle'].forEach(m => {
@@ -320,27 +309,16 @@
             document.getElementById('btn-' + mode).classList.add('selected');
         }
 
-        function updateColor(val) {
-            state.color = val;
-        }
+        function updateColor(val) { state.color = val; }
 
         function toggleVinyl() {
             state.vinyl = document.getElementById('vinylCheck').checked;
-            if (state.vinyl) {
-                coverEl.classList.add('vinyl');
-            } else {
-                coverEl.classList.remove('vinyl');
-            }
+            coverEl.classList.toggle('vinyl', state.vinyl);
         }
 
         function toggleShake() {
             state.shake = document.getElementById('shakeCheck').checked;
-            const box = document.getElementById('shakeRangeBox');
-            if (state.shake) {
-                box.classList.add('visible');
-            } else {
-                box.classList.remove('visible');
-            }
+            document.getElementById('shakeRangeBox').classList.toggle('visible', state.shake);
         }
 
         function updateShakeVal(val) {
@@ -348,7 +326,11 @@
             document.getElementById('shakeVal').innerText = val;
         }
 
-        // --- SEND TO BOT ---
+        function updateBars(val) {
+            state.bars = parseInt(val);
+            document.getElementById('barsVal').innerText = val;
+        }
+
         function sendData() {
             const data = {
                 mode: state.mode,
@@ -356,13 +338,10 @@
                 vinyl: state.vinyl,
                 shake: state.shake,
                 shake_power: parseInt(state.shakePower),
+                bars: parseInt(state.bars) // Отправляем новое значение
             };
             tg.sendData(JSON.stringify(data));
         }
-
     </script>
 </body>
 </html>
-
-
-

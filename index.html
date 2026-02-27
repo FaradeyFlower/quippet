@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройки Визуалайзера</title>
+    <!-- Подключаем скрипт Телеграма -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            background-color: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #000);
+            font-family: sans-serif;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        button {
+            background-color: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #fff);
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h3>🎨 Настрой свой клип</h3>
+
+    <label>Цвет спектра:</label>
+    <input type="color" id="colorPicker" value="#ffffff">
+
+    <label>
+        <input type="checkbox" id="vinylCheck"> 💿 Режим Винила
+    </label>
+
+    <button onclick="sendData()">Создать видео</button>
+
+    <script>
+        // Инициализация
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // Раскрыть на весь экран
+
+        function sendData() {
+            let color = document.getElementById("colorPicker").value;
+            let isVinyl = document.getElementById("vinylCheck").checked;
+
+            // Формируем данные для отправки боту
+            let data = JSON.stringify({
+                color: color,
+                vinyl: isVinyl
+            });
+
+            // Отправляем данные обратно в бота
+            tg.sendData(data);
+        }
+    </script>
+</body>
+
+</html>

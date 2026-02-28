@@ -18,43 +18,26 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: -apple-system, sans-serif;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            margin: 0; padding: 0;
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* --- ВЕРХНЯЯ ЧАСТЬ --- */
         .top-pane {
-            flex-shrink: 0;
-            padding: 10px;
+            flex-shrink: 0; padding: 10px;
             background-color: var(--bg-color);
             border-bottom: 1px solid #333;
-            z-index: 10;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            z-index: 10; display: flex; justify-content: center; align-items: center;
         }
 
         .preview-container {
-            height: 38vh; 
-            width: auto;
-            aspect-ratio: 9/16;
+            height: 38vh; width: auto; aspect-ratio: 9/16;
             background: linear-gradient(45deg, #333, #111);
-            border-radius: 12px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 2px solid #444;
+            border-radius: 12px; position: relative; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid #444;
             transition: transform 0.1s;
         }
 
-        .preview-bg {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-size: cover; filter: blur(10px) brightness(0.6); z-index: 0;
-        }
+        .preview-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; filter: blur(10px) brightness(0.6); z-index: 0; }
         .preview-cover {
             width: 60%; aspect-ratio: 1; background-color: #555;
             position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
@@ -62,34 +45,25 @@
             background-image: url('https://upload.wikimedia.org/wikipedia/commons/b/b2/A_black_background.jpg');
             background-size: cover; transition: border-radius 0.3s;
         }
-        .preview-cover::after {
-            content: ''; position: absolute; top: 50%; left: 50%; width: 15%; height: 15%;
-            background: #111; border-radius: 50%; transform: translate(-50%, -50%); display: none;
-        }
         .preview-cover.vinyl { border-radius: 50% !important; animation: spin 4s linear infinite; }
-        .preview-cover.vinyl::after { display: block; }
+        .preview-cover.vinyl::after {
+            content: ''; position: absolute; top: 50%; left: 50%; width: 15%; height: 15%;
+            background: #111; border-radius: 50%; transform: translate(-50%, -50%); display: block;
+        }
         @keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
         #vizCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; }
         .preview-text { position: absolute; top: 68%; width: 100%; text-align: center; z-index: 4; }
         .p-artist { font-size: 11px; font-weight: bold; color: white; }
         .p-track { font-size: 9px; color: #ddd; margin-top: 2px; }
 
-        /* --- НИЖНЯЯ ЧАСТЬ --- */
         .scrollable-content {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 15px;
-            padding-bottom: 90px;
+            flex-grow: 1; overflow-y: auto; padding: 15px; padding-bottom: 90px;
             -webkit-overflow-scrolling: touch;
         }
 
         .label { font-size: 12px; color: var(--hint-color); text-transform: uppercase; margin-bottom: 6px; display: block; font-weight: 600; }
         .section { margin-bottom: 18px; }
-        
-        .presets-row {
-            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;
-            scrollbar-width: none;
-        }
+        .presets-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
         .presets-row::-webkit-scrollbar { display: none; }
         .preset-card {
             background: var(--secondary-bg); min-width: 70px; padding: 8px;
@@ -99,7 +73,6 @@
         .preset-card:active { transform: scale(0.95); }
         .preset-icon { font-size: 20px; margin-bottom: 4px; }
         .preset-name { font-size: 10px; font-weight: 500; }
-
         .grid-select { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .card {
             background: var(--secondary-bg); border-radius: 10px; padding: 8px;
@@ -114,8 +87,7 @@
         input[type="color"] { border: none; width: 30px; height: 30px; background: none; }
         .switch-row {
             display: flex; justify-content: space-between; align-items: center;
-            background: var(--secondary-bg); padding: 10px 12px; border-radius: 10px; margin-bottom: 6px;
-            font-size: 14px;
+            background: var(--secondary-bg); padding: 10px 12px; border-radius: 10px; margin-bottom: 6px; font-size: 14px;
         }
         .toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
         .toggle input { opacity: 0; width: 0; height: 0; }
@@ -219,20 +191,12 @@
         const coverEl = document.getElementById('coverEl');
         const previewBox = document.getElementById('previewBox');
 
-        // 🔥 Исправленная функция ресайза с масштабированием
         function resizeCanvas() { 
             const dpr = window.devicePixelRatio || 1;
-            const width = previewBox.clientWidth;
-            const height = previewBox.clientHeight;
-            
-            // Физический размер (для четкости)
-            canvas.width = width * dpr;
-            canvas.height = height * dpr;
-            
-            // Масштабируем контекст! 
-            // Теперь все координаты ниже можно писать как для обычного экрана,
-            // а браузер сам умножит их на dpr.
-            ctx.scale(dpr, dpr);
+            // Устанавливаем физические размеры для четкости
+            canvas.width = previewBox.clientWidth * dpr;
+            canvas.height = previewBox.clientHeight * dpr;
+            // Не используем ctx.scale, считаем всё вручную!
         }
         
         window.addEventListener('resize', resizeCanvas);
@@ -259,16 +223,11 @@
 
         function draw() {
             const dpr = window.devicePixelRatio || 1;
-            // Логическая ширина (без учета dpr, так как мы сделали ctx.scale)
-            const W = previewBox.clientWidth; 
-            const H = previewBox.clientHeight;
+            // Проверка на случай ресайза
+            if (canvas.width !== previewBox.clientWidth * dpr) resizeCanvas();
 
-            // Если размер изменился, ресайзим
-            if (Math.abs(canvas.width - W * dpr) > 2) resizeCanvas();
-
-            // Чистим используя логические размеры
-            ctx.clearRect(0, 0, W, H);
-            
+            // Очищаем весь физический канвас
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = state.color;
             ctx.strokeStyle = state.color;
 
@@ -278,13 +237,18 @@
                 previewBox.style.transform = `translate(${offset}px, ${offset}px)`;
             } else { previewBox.style.transform = `none`; }
 
+            // Используем физические размеры для рисования (умножаем на DPR)
+            const W = canvas.width;
+            const H = canvas.height;
+
             if (state.mode === 'spectrum') {
                 const bars = state.bars; 
-                // Умный отступ
-                let gap = 2;
-                if (bars > 60) gap = 1;
-                if (bars > 90) gap = 0.5;
-                if (bars > 110) gap = 0;
+                
+                // Рассчитываем gap (отступ) в зависимости от плотности
+                // В физических пикселях
+                let gap = 2 * dpr; 
+                if (bars > 60) gap = 1 * dpr;
+                if (bars > 90) gap = 0; // Слипаются, если очень много
 
                 const totalGapW = (bars - 1) * gap;
                 const barW = (W - totalGapW) / bars;
@@ -296,24 +260,31 @@
                 }
 
             } else if (state.mode === 'bar') {
-                ctx.fillRect((W - W*0.7)/2, H * 0.85, W*0.7, 6);
+                ctx.fillRect((W - W*0.7)/2, H * 0.85, W*0.7, 6 * dpr);
             
             } else if (state.mode === 'circle') {
                 const cx = W / 2; 
                 const cy = H * 0.4; 
                 const radius = (W * 0.6) / 2;
                 
-                // Толщина линии
-                ctx.lineWidth = bars > 70 ? 1.5 : 3;
+                // 🔥 ГЛАВНЫЙ ФИКС ДЛЯ КРУГА
+                // Вычисляем длину окружности
+                const circumference = 2 * Math.PI * radius;
+                // Сколько места есть на одну линию
+                const spacePerBar = circumference / state.bars;
                 
+                // Толщина линии = 80% от доступного места, но не меньше 2 пикселей (чтобы видно было)
+                const calculatedWidth = Math.max(2 * dpr, spacePerBar * 0.8);
+                
+                ctx.lineWidth = calculatedWidth;
+
                 const lines = state.bars;
                 const step = (Math.PI * 2) / lines;
                 
                 for (let i = 0; i < lines; i++) {
-                    const len = Math.random() * 20 + 5;
+                    const len = (Math.random() * 20 + 5) * dpr;
                     const angle = i * step - (Math.PI / 2);
                     
-                    // Рисуем линию
                     ctx.beginPath();
                     ctx.moveTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
                     ctx.lineTo(cx + Math.cos(angle) * (radius + len), cy + Math.sin(angle) * (radius + len));

@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Настройки Видео</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -19,17 +19,33 @@
             color: var(--text-color);
             font-family: -apple-system, sans-serif;
             margin: 0;
-            padding: 15px;
-            padding-bottom: 90px;
+            padding: 0;
+            /* 🔥 ФИКСАЦИЯ ЭКРАНА */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Запрещаем скролл самого тела */
         }
 
-        /* --- ПРЕВЬЮ --- */
+        /* --- ВЕРХНЯЯ ЧАСТЬ (ПРЕВЬЮ) --- */
+        .top-pane {
+            flex-shrink: 0; /* Не сжиматься */
+            padding: 10px;
+            background-color: var(--bg-color);
+            border-bottom: 1px solid #333;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         .preview-container {
-            width: 100%;
-            max-width: 260px;
-            aspect-ratio: 9/16;
+            /* 🔥 Адаптивная высота: 38% от высоты экрана */
+            height: 38vh; 
+            width: auto;
+            aspect-ratio: 9/16; /* Сохраняем пропорции */
+            
             background: linear-gradient(45deg, #333, #111);
-            margin: 0 auto 20px auto;
             border-radius: 12px;
             position: relative;
             overflow: hidden;
@@ -37,6 +53,7 @@
             border: 2px solid #444;
             transition: transform 0.1s;
         }
+
         .preview-bg {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-size: cover; filter: blur(10px) brightness(0.6); z-index: 0;
@@ -56,129 +73,146 @@
         .preview-cover.vinyl::after { display: block; }
         @keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
         #vizCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; }
-        .preview-text { position: absolute; top: 65%; width: 100%; text-align: center; z-index: 4; }
-        .p-artist { font-size: 12px; font-weight: bold; color: white; }
-        .p-track { font-size: 10px; color: #ddd; margin-top: 2px; }
+        .preview-text { position: absolute; top: 68%; width: 100%; text-align: center; z-index: 4; }
+        .p-artist { font-size: 11px; font-weight: bold; color: white; }
+        .p-track { font-size: 9px; color: #ddd; margin-top: 2px; }
+
+        /* --- НИЖНЯЯ ЧАСТЬ (СКРОЛЛ) --- */
+        .scrollable-content {
+            flex-grow: 1;
+            overflow-y: auto; /* Включаем скролл только здесь */
+            padding: 15px;
+            padding-bottom: 90px; /* Место под кнопку */
+            -webkit-overflow-scrolling: touch; /* Плавный скролл на iOS */
+        }
 
         /* --- UI --- */
-        .label { font-size: 13px; color: var(--hint-color); text-transform: uppercase; margin-bottom: 8px; display: block; font-weight: 600; }
-        .section { margin-bottom: 20px; }
+        .label { font-size: 12px; color: var(--hint-color); text-transform: uppercase; margin-bottom: 6px; display: block; font-weight: 600; }
+        .section { margin-bottom: 18px; }
         
         /* ПРЕСЕТЫ */
         .presets-row {
             display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;
-            scrollbar-width: none; /* Firefox */
+            scrollbar-width: none;
         }
         .presets-row::-webkit-scrollbar { display: none; }
         .preset-card {
-            background: var(--secondary-bg); min-width: 80px; padding: 10px;
+            background: var(--secondary-bg); min-width: 70px; padding: 8px;
             border-radius: 10px; text-align: center; cursor: pointer; border: 2px solid transparent;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         .preset-card:active { transform: scale(0.95); }
-        .preset-icon { font-size: 24px; margin-bottom: 5px; }
-        .preset-name { font-size: 11px; font-weight: 500; }
+        .preset-icon { font-size: 20px; margin-bottom: 4px; }
+        .preset-name { font-size: 10px; font-weight: 500; }
 
         /* ОСТАЛЬНОЕ */
         .grid-select { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .card {
-            background: var(--secondary-bg); border-radius: 10px; padding: 10px;
-            text-align: center; cursor: pointer; border: 2px solid transparent; font-size: 12px;
+            background: var(--secondary-bg); border-radius: 10px; padding: 8px;
+            text-align: center; cursor: pointer; border: 2px solid transparent; font-size: 11px;
         }
         .card.selected { border-color: var(--btn-color); background: rgba(0, 122, 255, 0.15); }
-        .card-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+        .card-icon { font-size: 18px; display: block; margin-bottom: 3px; }
         .color-row {
             display: flex; align-items: center; justify-content: space-between;
-            background: var(--secondary-bg); padding: 10px 15px; border-radius: 10px;
+            background: var(--secondary-bg); padding: 8px 12px; border-radius: 10px;
         }
-        input[type="color"] { border: none; width: 35px; height: 35px; background: none; }
+        input[type="color"] { border: none; width: 30px; height: 30px; background: none; }
         .switch-row {
             display: flex; justify-content: space-between; align-items: center;
-            background: var(--secondary-bg); padding: 12px 15px; border-radius: 10px; margin-bottom: 8px;
+            background: var(--secondary-bg); padding: 10px 12px; border-radius: 10px; margin-bottom: 6px;
+            font-size: 14px;
         }
-        .toggle { position: relative; display: inline-block; width: 46px; height: 26px; }
+        .toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
         .toggle input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; border-radius: 34px; transition: .4s; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: .4s; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px; background-color: white; border-radius: 50%; transition: .4s; }
         input:checked + .slider { background-color: var(--btn-color); }
-        input:checked + .slider:before { transform: translateX(20px); }
-        .range-box { background: var(--secondary-bg); padding: 15px; border-radius: 10px; display: none; margin-top: 8px; }
+        input:checked + .slider:before { transform: translateX(18px); }
+        .range-box { background: var(--secondary-bg); padding: 12px; border-radius: 10px; display: none; margin-top: 6px; }
         .range-box.visible { display: block; animation: fadeIn 0.3s; }
-        input[type=range] { width: 100%; accent-color: var(--btn-color); margin-top: 10px;}
+        input[type=range] { width: 100%; accent-color: var(--btn-color); margin-top: 8px;}
+        
         .main-btn {
-            position: fixed; bottom: 15px; left: 15px; right: 15px;
+            position: absolute; bottom: 15px; left: 15px; right: 15px;
             background: var(--btn-color); color: white; border: none;
-            padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold;
-            cursor: pointer; z-index: 100;
+            padding: 14px; border-radius: 12px; font-size: 16px; font-weight: bold;
+            cursor: pointer; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div class="preview-container" id="previewBox">
-        <div class="preview-bg"></div>
-        <div class="preview-cover" id="coverEl"></div>
-        <div class="preview-text"><div class="p-artist">ARTIST NAME</div><div class="p-track">Track Title</div></div>
-        <canvas id="vizCanvas"></canvas>
-    </div>
-
-    <!-- 🔥 ПРЕСЕТЫ -->
-    <div class="section">
-        <span class="label">✨ Готовые стили</span>
-        <div class="presets-row">
-            <div class="preset-card" onclick="applyPreset('phonk')">
-                <span class="preset-icon">😈</span><span class="preset-name">Phonk</span>
-            </div>
-            <div class="preset-card" onclick="applyPreset('lofi')">
-                <span class="preset-icon">☕️</span><span class="preset-name">Lo-Fi</span>
-            </div>
-            <div class="preset-card" onclick="applyPreset('neon')">
-                <span class="preset-icon">👾</span><span class="preset-name">Neon</span>
-            </div>
-            <div class="preset-card" onclick="applyPreset('clean')">
-                <span class="preset-icon">💧</span><span class="preset-name">Clean</span>
-            </div>
+    <!-- 🔥 ВЕРХНЯЯ ЧАСТЬ (ФИКСИРОВАННАЯ) -->
+    <div class="top-pane">
+        <div class="preview-container" id="previewBox">
+            <div class="preview-bg"></div>
+            <div class="preview-cover" id="coverEl"></div>
+            <div class="preview-text"><div class="p-artist">ARTIST NAME</div><div class="p-track">Track Title</div></div>
+            <canvas id="vizCanvas"></canvas>
         </div>
     </div>
 
-    <div class="section">
-        <span class="label">Настройки</span>
-        <div class="grid-select">
-            <div class="card selected" onclick="setMode('spectrum')" id="btn-spectrum"><span class="card-icon">📊</span> Спектр</div>
-            <div class="card" onclick="setMode('bar')" id="btn-bar"><span class="card-icon">➖</span> Линия</div>
-            <div class="card" onclick="setMode('circle')" id="btn-circle"><span class="card-icon">⭕️</span> Круг</div>
+    <!-- 🔥 НИЖНЯЯ ЧАСТЬ (ПРОКРУЧИВАЕМАЯ) -->
+    <div class="scrollable-content">
+        
+        <div class="section">
+            <span class="label">✨ Готовые стили</span>
+            <div class="presets-row">
+                <div class="preset-card" onclick="applyPreset('phonk')">
+                    <span class="preset-icon">😈</span><span class="preset-name">Phonk</span>
+                </div>
+                <div class="preset-card" onclick="applyPreset('lofi')">
+                    <span class="preset-icon">☕️</span><span class="preset-name">Lo-Fi</span>
+                </div>
+                <div class="preset-card" onclick="applyPreset('neon')">
+                    <span class="preset-icon">👾</span><span class="preset-name">Neon</span>
+                </div>
+                <div class="preset-card" onclick="applyPreset('clean')">
+                    <span class="preset-icon">💧</span><span class="preset-name">Clean</span>
+                </div>
+            </div>
         </div>
 
-        <div class="range-box visible" style="margin-top: 10px;" id="roundContainer">
-            <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;"><span>Скругление</span> <span id="roundVal">20</span></div>
-            <input type="range" min="0" max="150" value="20" id="roundRange" oninput="updateRound(this.value)">
+        <div class="section">
+            <span class="label">Настройки</span>
+            <div class="grid-select">
+                <div class="card selected" onclick="setMode('spectrum')" id="btn-spectrum"><span class="card-icon">📊</span> Спектр</div>
+                <div class="card" onclick="setMode('bar')" id="btn-bar"><span class="card-icon">➖</span> Линия</div>
+                <div class="card" onclick="setMode('circle')" id="btn-circle"><span class="card-icon">⭕️</span> Круг</div>
+            </div>
+
+            <div class="range-box visible" style="margin-top: 10px;" id="roundContainer">
+                <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;"><span>Скругление</span> <span id="roundVal">20</span></div>
+                <input type="range" min="0" max="150" value="20" id="roundRange" oninput="updateRound(this.value)">
+            </div>
+
+            <div class="range-box visible" style="margin-top: 10px;">
+                <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;"><span>Плотность</span> <span id="barsVal">25</span></div>
+                <input type="range" min="30" max="120" value="50" id="barsRange" oninput="updateBars(this.value)">
+            </div>
         </div>
 
-        <div class="range-box visible" style="margin-top: 10px;">
-            <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;"><span>Плотность</span> <span id="barsVal">25</span></div>
-            <input type="range" min="30" max="120" value="50" id="barsRange" oninput="updateBars(this.value)">
+        <div class="section">
+            <span class="label">Цвет</span>
+            <div class="color-row"><span>Цвет элементов</span><input type="color" id="colorInp" value="#ffffff" oninput="updateColor(this.value)"></div>
         </div>
-    </div>
 
-    <div class="section">
-        <span class="label">Цвет</span>
-        <div class="color-row"><span>Цвет элементов</span><input type="color" id="colorInp" value="#ffffff" oninput="updateColor(this.value)"></div>
-    </div>
-
-    <div class="section">
-        <span class="label">Эффекты</span>
-        <div class="switch-row">
-            <span class="switch-label">💿 Винил</span>
-            <label class="toggle"><input type="checkbox" id="vinylCheck" onchange="toggleVinyl()"><span class="slider"></span></label>
-        </div>
-        <div class="switch-row">
-            <span class="switch-label">🫨 Тряска (Shake)</span>
-            <label class="toggle"><input type="checkbox" id="shakeCheck" onchange="toggleShake()"><span class="slider"></span></label>
-        </div>
-        <div class="range-box" id="shakeRangeBox">
-            <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px; color:#888;"><span>Сила</span> <span id="shakeVal">20</span></div>
-            <input type="range" min="5" max="50" value="20" id="shakeRange" oninput="updateShakeVal(this.value)">
+        <div class="section">
+            <span class="label">Эффекты</span>
+            <div class="switch-row">
+                <span class="switch-label">💿 Винил</span>
+                <label class="toggle"><input type="checkbox" id="vinylCheck" onchange="toggleVinyl()"><span class="slider"></span></label>
+            </div>
+            <div class="switch-row">
+                <span class="switch-label">🫨 Тряска (Shake)</span>
+                <label class="toggle"><input type="checkbox" id="shakeCheck" onchange="toggleShake()"><span class="slider"></span></label>
+            </div>
+            <div class="range-box" id="shakeRangeBox">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px; color:#888;"><span>Сила</span> <span id="shakeVal">20</span></div>
+                <input type="range" min="5" max="50" value="20" id="shakeRange" oninput="updateShakeVal(this.value)">
+            </div>
         </div>
     </div>
 
@@ -194,7 +228,14 @@
         const coverEl = document.getElementById('coverEl');
         const previewBox = document.getElementById('previewBox');
 
-        function resizeCanvas() { canvas.width = previewBox.clientWidth; canvas.height = previewBox.clientHeight; }
+        // 🔥 Исправленная функция ресайза (теперь учитывает контейнер)
+        function resizeCanvas() { 
+            canvas.width = previewBox.clientWidth; 
+            canvas.height = previewBox.clientHeight; 
+        }
+        
+        // Слушаем изменение размеров окна
+        window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
         // --- PRESETS LOGIC ---
@@ -209,7 +250,6 @@
             const p = presets[name];
             state = { ...state, ...p };
 
-            // Обновляем UI
             setMode(state.mode);
             updateColor(state.color); document.getElementById('colorInp').value = state.color;
             
@@ -223,6 +263,9 @@
         // ---------------------
 
         function draw() {
+            // Если размер изменился (например при загрузке), поправим
+            if (canvas.width !== previewBox.clientWidth) resizeCanvas();
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = state.color;
             ctx.strokeStyle = state.color;
@@ -289,4 +332,3 @@
     </script>
 </body>
 </html>
-

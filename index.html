@@ -46,12 +46,12 @@
             transition: filter 0.2s;
         }
 
-        /* 🔥 СЛОЙ ПАРТИКЛОВ (Исправил Z-Index и pointer-events) */
+        /* Слой частиц */
         .particle-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover;
             mix-blend-mode: screen; 
-            opacity: 1.0; /* Поставил 100% чтобы точно увидеть */
+            opacity: 1.0; 
             z-index: 1; 
             pointer-events: none;
             display: none;
@@ -141,8 +141,8 @@
         <div class="preview-container" id="previewBox">
             <div class="preview-bg" id="bgEl"></div>
             
-            <!-- 🔥 ВИДЕО ЧАСТИЦ (Добавил crossorigin) -->
-            <video id="particleVideo" class="particle-layer" loop muted playsinline webkit-playsinline></video>
+            <!-- Видео для частиц -->
+            <video id="particleVideo" class="particle-layer" loop muted playsinline webkit-playsinline autoplay></video>
             
             <div class="preview-cover" id="coverEl"></div>
             <div class="preview-text"><div class="p-artist">ARTIST NAME</div><div class="p-track">Track Title</div></div>
@@ -234,7 +234,7 @@
 
     <button class="main-btn" onclick="sendData()">Сохранить настройки</button>
 
-        <script>
+    <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
@@ -251,14 +251,10 @@
             particle: 'none'
         };
 
-        // 🔥 ИСПРАВЛЕННЫЙ БЛОК ССЫЛОК
+        // ЛОКАЛЬНЫЕ ССЫЛКИ
         const particleSources = {
             'none': '',
-            
-            // 1. Пыль грузим из интернета для теста (ЭТО ТОЧНО ДОЛЖНО РАБОТАТЬ)
-            'dust': 'https://faradeyflower.github.io/quippet/dust.mp4', 
-            
-            // 2. Остальные локально. Убедись, что названия файлов совпадают БУКВА В БУКВУ (маленькие буквы!)
+            'dust': 'dust.mp4', 
             'fire': 'fire.mp4',
             'snow': 'snow.mp4'
         };
@@ -269,14 +265,6 @@
         const previewBox = document.getElementById('previewBox');
         const bgEl = document.getElementById('bgEl');
         const partVideo = document.getElementById('particleVideo');
-
-        // 🔥 ДИАГНОСТИКА (Показывает реальную ошибку)
-        partVideo.onerror = function(e) {
-            if(partVideo.src && !partVideo.src.endsWith('none')) {
-                // Показываем пользователю, какую именно ссылку не удалось открыть
-                alert("❌ Ошибка загрузки видео!\nБраузер не видит файл по адресу:\n" + partVideo.src + "\n\n1. Проверь, залил ли ты файл на GitHub.\n2. Проверь название (dust.mp4 vs Dust.mp4).");
-            }
-        };
 
         function resizeCanvas() { 
             const dpr = window.devicePixelRatio || 1;
@@ -328,8 +316,8 @@
             } else {
                 partVideo.src = particleSources[name];
                 partVideo.style.display = 'block';
-                // Важно: muted=true обязателен для автоплея на мобильных
-                partVideo.muted = true; 
+                // Принудительно ставим Muted для автоплея
+                partVideo.muted = true;
                 partVideo.play().catch(e => {
                     console.log("Autoplay error:", e);
                 });
@@ -453,5 +441,3 @@
     </script>
 </body>
 </html>
-
-

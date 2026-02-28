@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Настройки Видео</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root {
-            --bg-color: var(--tg-theme-bg-color, #1c1c1e);
+    <script src="https://telegram.org/js/telegramcolor: var(--tg-theme-bg-color, #1c1c1e);
             --text-color: var(--tg-theme-text-color, #ffffff);
             --hint-color: var(--tg-theme-hint-color, #8e8e93);
             --btn-color: var(--tg-theme-button-color, #007aff);
@@ -45,15 +42,15 @@
             z-index: 0; transition: filter 0.2s;
         }
 
-        /* 🔥 ВИДЕО СЛОЙ ДЛЯ ПАРТИКЛОВ */
+        /* 🔥 СЛОЙ ЧАСТИЦ (Z-INDEX 1 - МЕЖДУ ФОНОМ И ОБЛОЖКОЙ) */
         .particle-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover;
-            mix-blend-mode: screen; /* Черный становится прозрачным! */
+            mix-blend-mode: screen; 
             opacity: 0.8;
             z-index: 1;
             pointer-events: none;
-            display: none; /* Скрыто по умолчанию */
+            display: none; 
         }
         
         .preview-cover {
@@ -79,8 +76,19 @@
         .label { font-size: 12px; color: var(--hint-color); text-transform: uppercase; margin-bottom: 6px; display: block; font-weight: 600; }
         .section { margin-bottom: 18px; }
         
+        .presets-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+        .presets-row::-webkit-scrollbar { display: none; }
+        .preset-card {
+            background: var(--secondary-bg); min-width: 70px; padding: 8px;
+            border-radius: 10px; text-align: center; cursor: pointer; border: 2px solid transparent;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .preset-card:active { transform: scale(0.95); }
+        .preset-icon { font-size: 20px; margin-bottom: 4px; }
+        .preset-name { font-size: 10px; font-weight: 500; }
+
         .grid-select { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .grid-select-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; } /* Для 4 кнопок */
+        .grid-select-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; } 
 
         .card {
             background: var(--secondary-bg); border-radius: 10px; padding: 8px;
@@ -109,7 +117,6 @@
             padding: 14px; border-radius: 12px; font-size: 16px; font-weight: bold;
             cursor: pointer; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -117,8 +124,8 @@
     <div class="top-pane">
         <div class="preview-container" id="previewBox">
             <div class="preview-bg" id="bgEl"></div>
-            <!-- 🔥 ВИДЕО СЛОЙ -->
-            <video id="particleVideo" class="particle-layer" loop muted playsinline autoplay></video>
+            <!-- 🔥 ВИДЕО: playsinline и webkit-playsinline обязательны для iPhone -->
+            <video id="particleVideo" class="particle-layer" loop muted playsinline webkit-playsinline autoplay></video>
             
             <div class="preview-cover" id="coverEl"></div>
             <div class="preview-text"><div class="p-artist">ARTIST NAME</div><div class="p-track">Track Title</div></div>
@@ -127,8 +134,25 @@
     </div>
 
     <div class="scrollable-content">
-        <!-- Секцию пресетов можно оставить или убрать, сокращу для места -->
-        
+        <!-- 🔥 СЕКЦИЯ ПРЕСЕТОВ (ВЕРНУЛ ОБРАТНО) -->
+        <div class="section">
+            <span class="label">✨ Готовые стили</span>
+            <div class="presets-row">
+                <div class="preset-card" onclick="applyPreset('phonk')">
+                    <span class="preset-icon">😈</span><span class="preset-name">Phonk</span>
+                </div>
+                <div class="preset-card" onclick="applyPreset('lofi')">
+                    <span class="preset-icon">☕️</span><span class="preset-name">Lo-Fi</span>
+                </div>
+                <div class="preset-card" onclick="applyPreset('neon')">
+                    <span class="preset-icon">👾</span><span class="preset-name">Neon</span>
+                </div>
+                <div class="preset-card" onclick="applyPreset('clean')">
+                    <span class="preset-icon">💧</span><span class="preset-name">Clean</span>
+                </div>
+            </div>
+        </div>
+
         <div class="section">
             <span class="label">Фон</span>
             <div class="switch-row">
@@ -143,7 +167,6 @@
 
         <div class="section">
             <span class="label">✨ Эффекты частиц</span>
-            <!-- 🔥 ВЫБОР ЧАСТИЦ -->
             <div class="grid-select-4">
                 <div class="card selected" onclick="setParticle('none')" id="part-none"><span class="card-icon">🚫</span> Нет</div>
                 <div class="card" onclick="setParticle('dust')" id="part-dust"><span class="card-icon">💨</span> Пыль</div>
@@ -209,11 +232,10 @@
             round: 20,
             blur: true,
             blurPower: 30,
-            particle: 'none' // 🔥 НОВЫЙ ПАРАМЕТР
+            particle: 'none'
         };
 
-        // Ссылки на видео файлы. Они должны лежать РЯДОМ с index.html на хостинге
-        // Либо замени на полные URL (https://mysite.com/dust.mp4)
+        // ⚠️ УБЕДИСЬ, ЧТО ЭТИ ФАЙЛЫ ЛЕЖАТ РЯДОМ С INDEX.HTML
         const particleSources = {
             'none': '',
             'dust': 'dust.mp4',
@@ -236,7 +258,35 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // --- ЛОГИКА ЧАСТИЦ ---
+        // 🔥 ОБНОВЛЕННЫЕ ПРЕСЕТЫ С ЧАСТИЦАМИ
+        const presets = {
+            phonk: { mode: 'bar', color: '#ff0000', vinyl: true, shake: true, shakePower: 30, bars: 15, round: 0, blur: true, blurPower: 20, particle: 'dust' },
+            lofi: { mode: 'circle', color: '#ffb6c1', vinyl: true, shake: false, shakePower: 20, bars: 50, round: 20, blur: true, blurPower: 40, particle: 'snow' },
+            neon: { mode: 'spectrum', color: '#00ff00', vinyl: false, shake: true, shakePower: 15, bars: 40, round: 10, blur: true, blurPower: 30, particle: 'fire' },
+            clean: { mode: 'spectrum', color: '#ffffff', vinyl: false, shake: false, shakePower: 20, bars: 25, round: 20, blur: false, blurPower: 0, particle: 'none' }
+        };
+
+        function applyPreset(name) {
+            const p = presets[name];
+            state = { ...state, ...p };
+            
+            // Применяем все настройки в UI
+            setMode(state.mode);
+            updateColor(state.color); document.getElementById('colorInp').value = state.color;
+            
+            document.getElementById('vinylCheck').checked = state.vinyl; toggleVinyl();
+            document.getElementById('shakeCheck').checked = state.shake; toggleShake();
+            document.getElementById('blurCheck').checked = state.blur; toggleBlur();
+
+            updateShakeVal(state.shakePower); document.getElementById('shakeRange').value = state.shakePower;
+            updateBars(state.bars); document.getElementById('barsRange').value = state.bars;
+            updateRound(state.round); document.getElementById('roundRange').value = state.round;
+            updateBlurVal(state.blurPower); document.getElementById('blurRange').value = state.blurPower;
+            
+            // 🔥 ПРИМЕНЯЕМ ЧАСТИЦЫ
+            setParticle(state.particle);
+        }
+
         function setParticle(name) {
             state.particle = name;
             
@@ -247,7 +297,7 @@
             });
             document.getElementById('part-' + name).classList.add('selected');
 
-            // Video Playback
+            // Загрузка видео
             if (name === 'none') {
                 partVideo.style.display = 'none';
                 partVideo.pause();
@@ -255,10 +305,15 @@
             } else {
                 partVideo.src = particleSources[name];
                 partVideo.style.display = 'block';
-                partVideo.play().catch(e => console.log("Auto-play blocked:", e));
+                // Автозапуск
+                const playPromise = partVideo.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log("Autoplay prevented:", error);
+                    });
+                }
             }
         }
-        // ---------------------
 
         function toggleBlur() {
             state.blur = document.getElementById('blurCheck').checked;

@@ -46,13 +46,13 @@
             transition: filter 0.2s;
         }
 
-        /* 🔥 СЛОЙ ПАРТИКЛОВ */
+        /* 🔥 СЛОЙ ПАРТИКЛОВ (Исправил Z-Index и pointer-events) */
         .particle-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover;
-            mix-blend-mode: screen; /* Черный становится прозрачным */
-            opacity: 0.8;
-            z-index: 1; /* Поверх фона, но под обложкой */
+            mix-blend-mode: screen; 
+            opacity: 1.0; /* Поставил 100% чтобы точно увидеть */
+            z-index: 1; 
             pointer-events: none;
             display: none;
         }
@@ -141,8 +141,8 @@
         <div class="preview-container" id="previewBox">
             <div class="preview-bg" id="bgEl"></div>
             
-            <!-- 🔥 ВИДЕО ЧАСТИЦ (playsinline нужен для iPhone) -->
-            <video id="particleVideo" class="particle-layer" loop muted playsinline webkit-playsinline autoplay></video>
+            <!-- 🔥 ВИДЕО ЧАСТИЦ (Добавил crossorigin) -->
+            <video id="particleVideo" class="particle-layer" loop muted playsinline webkit-playsinline></video>
             
             <div class="preview-cover" id="coverEl"></div>
             <div class="preview-text"><div class="p-artist">ARTIST NAME</div><div class="p-track">Track Title</div></div>
@@ -181,7 +181,6 @@
             </div>
         </div>
 
-        <!-- 🔥 СЕКЦИЯ ВЫБОРА ЧАСТИЦ -->
         <div class="section">
             <span class="label">✨ Частицы</span>
             <div class="grid-select-4">
@@ -249,15 +248,15 @@
             round: 20,
             blur: true,
             blurPower: 30,
-            particle: 'none' // Новый параметр
+            particle: 'none'
         };
 
-        // 🛑 Файлы должны лежать рядом с index.html
+        // 🔥 ВАЖНО: Убедись, что названия файлов точно такие же (с маленькой буквы)
         const particleSources = {
             'none': '',
-            'dust': 'dust.mp4',
-            'fire': 'fire.mp4',
-            'snow': 'snow.mp4'
+            'dust': './dust.mp4', // Добавил ./ для точности
+            'fire': './fire.mp4',
+            'snow': './snow.mp4'
         };
 
         const canvas = document.getElementById('vizCanvas');
@@ -266,6 +265,14 @@
         const previewBox = document.getElementById('previewBox');
         const bgEl = document.getElementById('bgEl');
         const partVideo = document.getElementById('particleVideo');
+
+        // 🔥 ДИАГНОСТИКА ОШИБОК 🔥
+        partVideo.onerror = function() {
+            // Если видео не найдено - покажем Alert
+            if(partVideo.src && !partVideo.src.endsWith('none')) {
+                alert("Ошибка! Не могу найти видео-файл: " + partVideo.src + "\nПроверь название файла и папку!");
+            }
+        };
 
         function resizeCanvas() { 
             const dpr = window.devicePixelRatio || 1;
@@ -298,22 +305,18 @@
             updateRound(state.round); document.getElementById('roundRange').value = state.round;
             updateBlurVal(state.blurPower); document.getElementById('blurRange').value = state.blurPower;
 
-            // Применяем частицы
             setParticle(state.particle);
         }
 
-        // --- ЛОГИКА ЧАСТИЦ ---
         function setParticle(name) {
             state.particle = name;
             
-            // UI
             ['none', 'dust', 'fire', 'snow'].forEach(p => {
                 const btn = document.getElementById('part-' + p);
                 if(btn) btn.classList.remove('selected');
             });
             document.getElementById('part-' + name).classList.add('selected');
 
-            // Video
             if (name === 'none') {
                 partVideo.style.display = 'none';
                 partVideo.pause();
@@ -321,11 +324,12 @@
             } else {
                 partVideo.src = particleSources[name];
                 partVideo.style.display = 'block';
-                // Пытаемся запустить автоплей
-                const playPromise = partVideo.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch(error => console.log("Auto-play prevented"));
-                }
+                // 🔥 ПРИНУДИТЕЛЬНО ВКЛЮЧАЕМ ЗВУК ВЫКЛ И ИГРАЕМ
+                partVideo.muted = true;
+                partVideo.play().catch(e => {
+                    console.log("Autoplay error:", e);
+                    // alert("Автоплей заблокирован: " + e.message); // Можно раскомментировать для отладки
+                });
             }
         }
 

@@ -46,11 +46,11 @@
             transition: filter 0.2s;
         }
 
-        /* Слой частиц */
+        /* 🔥 СЛОЙ ПАРТИКЛОВ (ТЕПЕРЬ ЭТО IMG) */
         .particle-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover;
-            mix-blend-mode: screen; 
+            mix-blend-mode: screen; /* Черный цвет в GIF станет прозрачным */
             opacity: 1.0; 
             z-index: 1; 
             pointer-events: none;
@@ -141,8 +141,8 @@
         <div class="preview-container" id="previewBox">
             <div class="preview-bg" id="bgEl"></div>
             
-            <!-- Видео для частиц -->
-            <video id="particleVideo" class="particle-layer" loop muted playsinline webkit-playsinline autoplay></video>
+            <!-- 🔥 ТЕПЕРЬ ТУТ IMG ВМЕСТО VIDEO -->
+            <img id="particleImg" class="particle-layer" src="" alt="">
             
             <div class="preview-cover" id="coverEl"></div>
             <div class="preview-text"><div class="p-artist">ARTIST NAME</div><div class="p-track">Track Title</div></div>
@@ -251,12 +251,12 @@
             particle: 'none'
         };
 
-        // ЛОКАЛЬНЫЕ ССЫЛКИ
+        // 🔥 ТЕПЕРЬ ИСПОЛЬЗУЕМ GIF
         const particleSources = {
             'none': '',
-            'dust': 'dust.mp4', 
-            'fire': 'fire.mp4',
-            'snow': 'snow.mp4'
+            'dust': 'dust.gif', 
+            'fire': 'fire.gif',
+            'snow': 'snow.gif'
         };
 
         const canvas = document.getElementById('vizCanvas');
@@ -264,7 +264,8 @@
         const coverEl = document.getElementById('coverEl');
         const previewBox = document.getElementById('previewBox');
         const bgEl = document.getElementById('bgEl');
-        const partVideo = document.getElementById('particleVideo');
+        // 🔥 Элемент теперь IMG
+        const partImg = document.getElementById('particleImg');
 
         function resizeCanvas() { 
             const dpr = window.devicePixelRatio || 1;
@@ -309,18 +310,13 @@
             });
             document.getElementById('part-' + name).classList.add('selected');
 
+            // 🔥 ЛОГИКА ДЛЯ GIF (намного проще)
             if (name === 'none') {
-                partVideo.style.display = 'none';
-                partVideo.pause();
-                partVideo.src = "";
+                partImg.style.display = 'none';
+                partImg.src = "";
             } else {
-                partVideo.src = particleSources[name];
-                partVideo.style.display = 'block';
-                // Принудительно ставим Muted для автоплея
-                partVideo.muted = true;
-                partVideo.play().catch(e => {
-                    console.log("Autoplay error:", e);
-                });
+                partImg.src = particleSources[name];
+                partImg.style.display = 'block';
             }
         }
 

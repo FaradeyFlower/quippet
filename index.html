@@ -37,18 +37,16 @@
             transition: transform 0.1s;
         }
 
-        /* 🔥 ИСПРАВЛЕНИЕ: Добавил реальное изображение для фона */
+        /* Абстрактная картинка для демонстрации Blur */
         .preview-bg { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            /* Яркая абстракция, чтобы было видно размытие */
             background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop');
             background-size: cover; background-position: center;
             filter: blur(30px) brightness(0.6); 
             z-index: 0; 
-            transition: filter 0.2s; /* Плавная анимация при изменении ползунка */
+            transition: filter 0.2s;
         }
         
-        /* 🔥 ИСПРАВЛЕНИЕ: Та же картинка для обложки (как в боте) */
         .preview-cover {
             width: 60%; aspect-ratio: 1; background-color: #555;
             position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%);
@@ -177,7 +175,8 @@
                 <input type="range" min="0" max="150" value="20" id="roundRange" oninput="updateRound(this.value)">
             </div>
 
-            <div class="range-box visible" style="margin-top: 10px;">
+            <!-- 🔥 ID ДЛЯ СКРЫТИЯ ПЛОТНОСТИ -->
+            <div class="range-box visible" style="margin-top: 10px;" id="barsContainer">
                 <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;"><span>Плотность спектра</span> <span id="barsVal">25</span></div>
                 <input type="range" min="30" max="120" value="50" id="barsRange" oninput="updateBars(this.value)">
             </div>
@@ -312,8 +311,16 @@
                     const h = Math.random() * (H * 0.15) + (H * 0.05); 
                     ctx.fillRect(startX + i * (barW + gap), groundLevel - h, barW, h);
                 }
+
             } else if (state.mode === 'bar') {
-                ctx.fillRect((W - W*0.7)/2, groundLevel, W*0.7, 6 * dpr);
+                // 🔥 АНИМАЦИЯ ПРОГРЕСС БАРА (как у бота)
+                // Зацикливаем время (4 секунды)
+                const time = Date.now();
+                const progress = (time % 4000) / 4000; 
+                
+                // Рисуем полоску слева направо (0 -> Width)
+                ctx.fillRect(0, groundLevel, W * progress, 6 * dpr);
+                
             } else if (state.mode === 'circle') {
                 const cx = W / 2; 
                 const cy = H * 0.38; 
@@ -343,7 +350,16 @@
             state.mode = mode;
             ['spectrum', 'bar', 'circle'].forEach(m => document.getElementById('btn-' + m).classList.remove('selected'));
             document.getElementById('btn-' + mode).classList.add('selected');
+            
+            // 🔥 СКРЫВАЕМ СЛАЙДЕР "ПЛОТНОСТЬ" ЕСЛИ ВЫБРАН РЕЖИМ ЛИНИИ
+            const barsContainer = document.getElementById('barsContainer');
+            if(mode === 'bar') {
+                barsContainer.style.display = 'none';
+            } else {
+                barsContainer.style.display = 'block';
+            }
         }
+        
         function updateRound(val) {
             state.round = parseInt(val); document.getElementById('roundVal').innerText = val;
             if (!state.vinyl) coverEl.style.borderRadius = (val / 4) + 'px';

@@ -228,17 +228,18 @@
         const coverEl = document.getElementById('coverEl');
         const previewBox = document.getElementById('previewBox');
 
-        // 🔥 Исправленная функция ресайза (теперь учитывает контейнер)
+        // 🔥 Исправленная функция ресайза (теперь с поддержкой HD/Retina)
         function resizeCanvas() { 
-            canvas.width = previewBox.clientWidth; 
-            canvas.height = previewBox.clientHeight; 
+            const dpr = window.devicePixelRatio || 1;
+            // Устанавливаем физический размер с учетом плотности пикселей
+            canvas.width = previewBox.clientWidth * dpr; 
+            canvas.height = previewBox.clientHeight * dpr; 
+            // Визуально канвас растягивается на 100% блока (через CSS, он абсолютный)
         }
         
-        // Слушаем изменение размеров окна
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // --- PRESETS LOGIC ---
         const presets = {
             phonk: { mode: 'bar', color: '#ff0000', vinyl: true, shake: true, shakePower: 30, bars: 15, round: 0 },
             lofi: { mode: 'circle', color: '#ffb6c1', vinyl: true, shake: false, shakePower: 20, bars: 50, round: 20 },
@@ -249,51 +250,77 @@
         function applyPreset(name) {
             const p = presets[name];
             state = { ...state, ...p };
-
             setMode(state.mode);
             updateColor(state.color); document.getElementById('colorInp').value = state.color;
-            
             document.getElementById('vinylCheck').checked = state.vinyl; toggleVinyl();
             document.getElementById('shakeCheck').checked = state.shake; toggleShake();
-            
             updateShakeVal(state.shakePower); document.getElementById('shakeRange').value = state.shakePower;
             updateBars(state.bars); document.getElementById('barsRange').value = state.bars;
             updateRound(state.round); document.getElementById('roundRange').value = state.round;
         }
-        // ---------------------
 
         function draw() {
-            // Если размер изменился (например при загрузке), поправим
-            if (canvas.width !== previewBox.clientWidth) resizeCanvas();
+            const dpr = window.devicePixelRatio || 1;
+            // Проверяем, изменился ли размер (на случай поворота экрана)
+            if (canvas.width !== previewBox.clientWidth * dpr) resizeCanvas();
 
+            // Чистим холст (используем реальные размеры)
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = state.color;
             ctx.strokeStyle = state.color;
 
+            // Тряска
             if (state.shake && Math.random() > 0.8) {
                 const offset = (Math.random() - 0.5) * (state.shakePower / 3); 
                 previewBox.style.transform = `translate(${offset}px, ${offset}px)`;
             } else { previewBox.style.transform = `none`; }
 
+            // Реальные размеры (W, H)
+            const W = canvas.width;
+            const H = canvas.height;
+
             if (state.mode === 'spectrum') {
-                const bars = state.bars; const gap = 2;
-                const barW = (canvas.width - (gap * (bars - 1))) / bars;
-                const totalW = bars * barW + (bars-1) * gap;
-                const startX = (canvas.width - totalW) / 2;
+                const bars = state.bars; 
+                
+                // 🔥 УМНЫЙ ОТСТУП: Чем больше линий, тем меньше отступ
+                let logicalGap = 2; // Стандартный отступ в "логических" пикселях
+                if (bars > 60) logicalGap = 1;
+                if (bars > 90) logicalGap = 0.5; // Почти впритык
+
+                // Умножаем на DPR, чтобы на Retina экране отступ не стал слишком микроскопическим
+                const gap = logicalGap * dpr;
+
+                // Вычисляем ширину колонки
+                // Формула: (Все место - Все отступы) / Кол-во колонок
+                const totalGapW = (bars - 1) * gap;
+                const availableW = W - totalGapW;
+                const barW = availableW / bars;
+
+                // Рисуем от центра
+                const startX = (W - (bars * barW + totalGapW)) / 2;
+
                 for (let i = 0; i < bars; i++) {
-                    const h = Math.random() * 50 + 10; 
-                    ctx.fillRect(startX + i * (barW + gap), canvas.height * 0.85 - h, barW, h);
+                    const h = Math.random() * (H * 0.15) + (H * 0.05); // Высота 5-20% от экрана
+                    ctx.fillRect(startX + i * (barW + gap), H * 0.85 - h, barW, h);
                 }
+
             } else if (state.mode === 'bar') {
-                ctx.fillRect((canvas.width - canvas.width*0.7)/2, canvas.height * 0.85, canvas.width*0.7, 6);
+                // Линия по центру
+                ctx.fillRect((W - W*0.7)/2, H * 0.85, W*0.7, 6 * dpr);
+            
             } else if (state.mode === 'circle') {
-                const cx = canvas.width / 2; const cy = canvas.height * 0.4; 
-                const radius = (canvas.width * 0.6) / 2 + 10;
-                ctx.lineWidth = 3;
+                const cx = W / 2; 
+                const cy = H * 0.4; 
+                const radius = (W * 0.6) / 2;
+
+                // Толщина линии тоже зависит от плотности
+                const lineWidth = (bars > 70 ? 1.5 : 3) * dpr;
+                ctx.lineWidth = lineWidth;
+
                 const lines = state.bars;
                 const step = (Math.PI * 2) / lines;
                 for (let i = 0; i < lines; i++) {
-                    const len = Math.random() * 20 + 5;
+                    const len = (Math.random() * 20 + 5) * dpr;
                     const angle = i * step - (Math.PI / 2);
                     ctx.beginPath();
                     ctx.moveTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);

@@ -31,15 +31,22 @@
 
         .preview-container {
             height: 38vh; width: auto; aspect-ratio: 9/16;
-            background: linear-gradient(45deg, #333, #111);
+            background: #000;
             border-radius: 12px; position: relative; overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid #444;
             transition: transform 0.1s;
         }
 
-        .preview-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; filter: blur(10px) brightness(0.6); z-index: 0; }
+        /* 🔥 ФОН ПРЕВЬЮ - БУДЕМ МЕНЯТЬ ЕГО BLUR */
+        .preview-bg { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/b/b2/A_black_background.jpg');
+            background-size: cover; background-position: center;
+            filter: blur(30px) brightness(0.6); /* Дефолтное значение */
+            z-index: 0; 
+            transition: filter 0.3s;
+        }
         
-        /* 🔥 ОБЛОЖКА ЧУТЬ ВЫШЕ (было 40%, стало 38%) */
         .preview-cover {
             width: 60%; aspect-ratio: 1; background-color: #555;
             position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%);
@@ -56,7 +63,6 @@
         
         #vizCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; }
         
-        /* 🔥 ТЕКСТ ПОДНЯЛ ВЫШЕ (было 68%, стало 62%), ЧТОБЫ СПЕКТР ЕГО НЕ БИЛ */
         .preview-text { position: absolute; top: 62%; width: 100%; text-align: center; z-index: 4; pointer-events: none; }
         .p-artist { font-size: 11px; font-weight: bold; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
         .p-track { font-size: 9px; color: #ddd; margin-top: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
@@ -117,7 +123,7 @@
 
     <div class="top-pane">
         <div class="preview-container" id="previewBox">
-            <div class="preview-bg"></div>
+            <div class="preview-bg" id="bgEl"></div>
             <div class="preview-cover" id="coverEl"></div>
             <div class="preview-text"><div class="p-artist">ARTIST NAME</div><div class="p-track">Track Title</div></div>
             <canvas id="vizCanvas"></canvas>
@@ -144,6 +150,18 @@
         </div>
 
         <div class="section">
+            <span class="label">Фон</span>
+            <div class="switch-row">
+                <span class="switch-label">🌫 Размытие фона</span>
+                <label class="toggle"><input type="checkbox" id="blurCheck" onchange="toggleBlur()"><span class="slider"></span></label>
+            </div>
+            <div class="range-box" id="blurRangeBox">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px; color:#888;"><span>Сила размытия</span> <span id="blurVal">30</span></div>
+                <input type="range" min="0" max="100" value="30" id="blurRange" oninput="updateBlurVal(this.value)">
+            </div>
+        </div>
+
+        <div class="section">
             <span class="label">Настройки</span>
             <div class="grid-select">
                 <div class="card selected" onclick="setMode('spectrum')" id="btn-spectrum"><span class="card-icon">📊</span> Спектр</div>
@@ -152,12 +170,12 @@
             </div>
 
             <div class="range-box visible" style="margin-top: 10px;" id="roundContainer">
-                <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;"><span>Скругление</span> <span id="roundVal">20</span></div>
+                <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;"><span>Скругление обложки</span> <span id="roundVal">20</span></div>
                 <input type="range" min="0" max="150" value="20" id="roundRange" oninput="updateRound(this.value)">
             </div>
 
             <div class="range-box visible" style="margin-top: 10px;">
-                <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;"><span>Плотность</span> <span id="barsVal">25</span></div>
+                <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;"><span>Плотность спектра</span> <span id="barsVal">25</span></div>
                 <input type="range" min="30" max="120" value="50" id="barsRange" oninput="updateBars(this.value)">
             </div>
         </div>
@@ -178,7 +196,7 @@
                 <label class="toggle"><input type="checkbox" id="shakeCheck" onchange="toggleShake()"><span class="slider"></span></label>
             </div>
             <div class="range-box" id="shakeRangeBox">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px; color:#888;"><span>Сила</span> <span id="shakeVal">20</span></div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px; color:#888;"><span>Сила тряски</span> <span id="shakeVal">20</span></div>
                 <input type="range" min="5" max="50" value="20" id="shakeRange" oninput="updateShakeVal(this.value)">
             </div>
         </div>
@@ -190,39 +208,83 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        let state = { mode: 'spectrum', color: '#ffffff', vinyl: false, shake: false, shakePower: 20, bars: 25, round: 20 };
+        // Добавил blur и blurPower в состояние
+        let state = { 
+            mode: 'spectrum', 
+            color: '#ffffff', 
+            vinyl: false, 
+            shake: false, 
+            shakePower: 20, 
+            bars: 25, 
+            round: 20,
+            blur: true,
+            blurPower: 30
+        };
+
         const canvas = document.getElementById('vizCanvas');
         const ctx = canvas.getContext('2d');
         const coverEl = document.getElementById('coverEl');
         const previewBox = document.getElementById('previewBox');
+        const bgEl = document.getElementById('bgEl');
 
         function resizeCanvas() { 
             const dpr = window.devicePixelRatio || 1;
             canvas.width = previewBox.clientWidth * dpr;
             canvas.height = previewBox.clientHeight * dpr;
         }
-        
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
+        // Пресеты
         const presets = {
-            phonk: { mode: 'bar', color: '#ff0000', vinyl: true, shake: true, shakePower: 30, bars: 15, round: 0 },
-            lofi: { mode: 'circle', color: '#ffb6c1', vinyl: true, shake: false, shakePower: 20, bars: 50, round: 20 },
-            neon: { mode: 'spectrum', color: '#00ff00', vinyl: false, shake: true, shakePower: 15, bars: 40, round: 10 },
-            clean: { mode: 'spectrum', color: '#ffffff', vinyl: false, shake: false, shakePower: 20, bars: 25, round: 20 }
+            phonk: { mode: 'bar', color: '#ff0000', vinyl: true, shake: true, shakePower: 30, bars: 15, round: 0, blur: true, blurPower: 20 },
+            lofi: { mode: 'circle', color: '#ffb6c1', vinyl: true, shake: false, shakePower: 20, bars: 50, round: 20, blur: true, blurPower: 40 },
+            neon: { mode: 'spectrum', color: '#00ff00', vinyl: false, shake: true, shakePower: 15, bars: 40, round: 10, blur: true, blurPower: 30 },
+            clean: { mode: 'spectrum', color: '#ffffff', vinyl: false, shake: false, shakePower: 20, bars: 25, round: 20, blur: false, blurPower: 0 }
         };
 
         function applyPreset(name) {
             const p = presets[name];
             state = { ...state, ...p };
+            
+            // UI Updates
             setMode(state.mode);
             updateColor(state.color); document.getElementById('colorInp').value = state.color;
+            
             document.getElementById('vinylCheck').checked = state.vinyl; toggleVinyl();
             document.getElementById('shakeCheck').checked = state.shake; toggleShake();
+            document.getElementById('blurCheck').checked = state.blur; toggleBlur();
+
             updateShakeVal(state.shakePower); document.getElementById('shakeRange').value = state.shakePower;
             updateBars(state.bars); document.getElementById('barsRange').value = state.bars;
             updateRound(state.round); document.getElementById('roundRange').value = state.round;
+            updateBlurVal(state.blurPower); document.getElementById('blurRange').value = state.blurPower;
         }
+
+        // --- ЛОГИКА ФОНА ---
+        function toggleBlur() {
+            state.blur = document.getElementById('blurCheck').checked;
+            document.getElementById('blurRangeBox').classList.toggle('visible', state.blur);
+            updateBgStyle();
+        }
+
+        function updateBlurVal(val) {
+            state.blurPower = parseInt(val);
+            document.getElementById('blurVal').innerText = val;
+            updateBgStyle();
+        }
+
+        function updateBgStyle() {
+            // Если выключено - blur(0px), если включено - blur(Xpx)
+            const radius = state.blur ? state.blurPower : 0;
+            // brightness(0.6) оставляем всегда, чтобы текст читался
+            bgEl.style.filter = `blur(${radius}px) brightness(0.6)`;
+        }
+        
+        // Инициализация при старте
+        document.getElementById('blurCheck').checked = state.blur;
+        toggleBlur();
+        // -------------------
 
         function draw() {
             const dpr = window.devicePixelRatio || 1;
@@ -239,8 +301,6 @@
 
             const W = canvas.width;
             const H = canvas.height;
-
-            // 🔥 ОПУСТИЛ СПЕКТР ВНИЗ (БЫЛО 0.85 -> СТАЛО 0.94)
             const groundLevel = H * 0.94; 
 
             if (state.mode === 'spectrum') {
@@ -257,19 +317,15 @@
                     const h = Math.random() * (H * 0.15) + (H * 0.05); 
                     ctx.fillRect(startX + i * (barW + gap), groundLevel - h, barW, h);
                 }
-
             } else if (state.mode === 'bar') {
                 ctx.fillRect((W - W*0.7)/2, groundLevel, W*0.7, 6 * dpr);
-            
             } else if (state.mode === 'circle') {
                 const cx = W / 2; 
-                const cy = H * 0.38; // 🔥 Поднял круг чуть выше (к обложке)
+                const cy = H * 0.38; 
                 const radius = (W * 0.6) / 2;
-                
                 const circumference = 2 * Math.PI * radius;
                 const spacePerBar = circumference / state.bars;
                 const calculatedWidth = Math.max(2 * dpr, spacePerBar * 0.8);
-                
                 ctx.lineWidth = calculatedWidth;
 
                 const lines = state.bars;

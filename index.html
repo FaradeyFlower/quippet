@@ -37,7 +37,6 @@
             transition: transform 0.1s;
         }
 
-        /* Абстрактная картинка для демонстрации Blur */
         .preview-bg { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop');
@@ -45,6 +44,17 @@
             filter: blur(30px) brightness(0.6); 
             z-index: 0; 
             transition: filter 0.2s;
+        }
+
+        /* 🔥 СЛОЙ ПАРТИКЛОВ */
+        .particle-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            mix-blend-mode: screen; /* Черный становится прозрачным */
+            opacity: 0.8;
+            z-index: 1; /* Поверх фона, но под обложкой */
+            pointer-events: none;
+            display: none;
         }
         
         .preview-cover {
@@ -77,6 +87,7 @@
         .section { margin-bottom: 18px; }
         .presets-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
         .presets-row::-webkit-scrollbar { display: none; }
+        
         .preset-card {
             background: var(--secondary-bg); min-width: 70px; padding: 8px;
             border-radius: 10px; text-align: center; cursor: pointer; border: 2px solid transparent;
@@ -85,13 +96,18 @@
         .preset-card:active { transform: scale(0.95); }
         .preset-icon { font-size: 20px; margin-bottom: 4px; }
         .preset-name { font-size: 10px; font-weight: 500; }
+
         .grid-select { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .grid-select-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+
         .card {
             background: var(--secondary-bg); border-radius: 10px; padding: 8px;
             text-align: center; cursor: pointer; border: 2px solid transparent; font-size: 11px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         .card.selected { border-color: var(--btn-color); background: rgba(0, 122, 255, 0.15); }
         .card-icon { font-size: 18px; display: block; margin-bottom: 3px; }
+        
         .color-row {
             display: flex; align-items: center; justify-content: space-between;
             background: var(--secondary-bg); padding: 8px 12px; border-radius: 10px;
@@ -117,7 +133,6 @@
             padding: 14px; border-radius: 12px; font-size: 16px; font-weight: bold;
             cursor: pointer; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -125,6 +140,10 @@
     <div class="top-pane">
         <div class="preview-container" id="previewBox">
             <div class="preview-bg" id="bgEl"></div>
+            
+            <!-- 🔥 ВИДЕО ЧАСТИЦ (playsinline нужен для iPhone) -->
+            <video id="particleVideo" class="particle-layer" loop muted playsinline webkit-playsinline autoplay></video>
+            
             <div class="preview-cover" id="coverEl"></div>
             <div class="preview-text"><div class="p-artist">ARTIST NAME</div><div class="p-track">Track Title</div></div>
             <canvas id="vizCanvas"></canvas>
@@ -162,6 +181,17 @@
             </div>
         </div>
 
+        <!-- 🔥 СЕКЦИЯ ВЫБОРА ЧАСТИЦ -->
+        <div class="section">
+            <span class="label">✨ Частицы</span>
+            <div class="grid-select-4">
+                <div class="card selected" onclick="setParticle('none')" id="part-none"><span class="card-icon">🚫</span> Нет</div>
+                <div class="card" onclick="setParticle('dust')" id="part-dust"><span class="card-icon">💨</span> Пыль</div>
+                <div class="card" onclick="setParticle('fire')" id="part-fire"><span class="card-icon">🔥</span> Искры</div>
+                <div class="card" onclick="setParticle('snow')" id="part-snow"><span class="card-icon">❄️</span> Снег</div>
+            </div>
+        </div>
+
         <div class="section">
             <span class="label">Настройки</span>
             <div class="grid-select">
@@ -175,7 +205,6 @@
                 <input type="range" min="0" max="150" value="20" id="roundRange" oninput="updateRound(this.value)">
             </div>
 
-            <!-- 🔥 ID ДЛЯ СКРЫТИЯ ПЛОТНОСТИ -->
             <div class="range-box visible" style="margin-top: 10px;" id="barsContainer">
                 <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;"><span>Плотность спектра</span> <span id="barsVal">25</span></div>
                 <input type="range" min="30" max="120" value="50" id="barsRange" oninput="updateBars(this.value)">
@@ -219,7 +248,16 @@
             bars: 25, 
             round: 20,
             blur: true,
-            blurPower: 30
+            blurPower: 30,
+            particle: 'none' // Новый параметр
+        };
+
+        // 🛑 Файлы должны лежать рядом с index.html
+        const particleSources = {
+            'none': '',
+            'dust': 'dust.mp4',
+            'fire': 'fire.mp4',
+            'snow': 'snow.mp4'
         };
 
         const canvas = document.getElementById('vizCanvas');
@@ -227,6 +265,7 @@
         const coverEl = document.getElementById('coverEl');
         const previewBox = document.getElementById('previewBox');
         const bgEl = document.getElementById('bgEl');
+        const partVideo = document.getElementById('particleVideo');
 
         function resizeCanvas() { 
             const dpr = window.devicePixelRatio || 1;
@@ -237,10 +276,10 @@
         resizeCanvas();
 
         const presets = {
-            phonk: { mode: 'bar', color: '#ff0000', vinyl: true, shake: true, shakePower: 30, bars: 15, round: 0, blur: true, blurPower: 20 },
-            lofi: { mode: 'circle', color: '#ffb6c1', vinyl: true, shake: false, shakePower: 20, bars: 50, round: 20, blur: true, blurPower: 40 },
-            neon: { mode: 'spectrum', color: '#00ff00', vinyl: false, shake: true, shakePower: 15, bars: 40, round: 10, blur: true, blurPower: 30 },
-            clean: { mode: 'spectrum', color: '#ffffff', vinyl: false, shake: false, shakePower: 20, bars: 25, round: 20, blur: false, blurPower: 0 }
+            phonk: { mode: 'bar', color: '#ff0000', vinyl: true, shake: true, shakePower: 30, bars: 15, round: 0, blur: true, blurPower: 20, particle: 'dust' },
+            lofi: { mode: 'circle', color: '#ffb6c1', vinyl: true, shake: false, shakePower: 20, bars: 50, round: 20, blur: true, blurPower: 40, particle: 'snow' },
+            neon: { mode: 'spectrum', color: '#00ff00', vinyl: false, shake: true, shakePower: 15, bars: 40, round: 10, blur: true, blurPower: 30, particle: 'fire' },
+            clean: { mode: 'spectrum', color: '#ffffff', vinyl: false, shake: false, shakePower: 20, bars: 25, round: 20, blur: false, blurPower: 0, particle: 'none' }
         };
 
         function applyPreset(name) {
@@ -258,6 +297,36 @@
             updateBars(state.bars); document.getElementById('barsRange').value = state.bars;
             updateRound(state.round); document.getElementById('roundRange').value = state.round;
             updateBlurVal(state.blurPower); document.getElementById('blurRange').value = state.blurPower;
+
+            // Применяем частицы
+            setParticle(state.particle);
+        }
+
+        // --- ЛОГИКА ЧАСТИЦ ---
+        function setParticle(name) {
+            state.particle = name;
+            
+            // UI
+            ['none', 'dust', 'fire', 'snow'].forEach(p => {
+                const btn = document.getElementById('part-' + p);
+                if(btn) btn.classList.remove('selected');
+            });
+            document.getElementById('part-' + name).classList.add('selected');
+
+            // Video
+            if (name === 'none') {
+                partVideo.style.display = 'none';
+                partVideo.pause();
+                partVideo.src = "";
+            } else {
+                partVideo.src = particleSources[name];
+                partVideo.style.display = 'block';
+                // Пытаемся запустить автоплей
+                const playPromise = partVideo.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => console.log("Auto-play prevented"));
+                }
+            }
         }
 
         function toggleBlur() {
@@ -313,12 +382,8 @@
                 }
 
             } else if (state.mode === 'bar') {
-                // 🔥 АНИМАЦИЯ ПРОГРЕСС БАРА (как у бота)
-                // Зацикливаем время (4 секунды)
                 const time = Date.now();
                 const progress = (time % 4000) / 4000; 
-                
-                // Рисуем полоску слева направо (0 -> Width)
                 ctx.fillRect(0, groundLevel, W * progress, 6 * dpr);
                 
             } else if (state.mode === 'circle') {
@@ -351,7 +416,6 @@
             ['spectrum', 'bar', 'circle'].forEach(m => document.getElementById('btn-' + m).classList.remove('selected'));
             document.getElementById('btn-' + mode).classList.add('selected');
             
-            // 🔥 СКРЫВАЕМ СЛАЙДЕР "ПЛОТНОСТЬ" ЕСЛИ ВЫБРАН РЕЖИМ ЛИНИИ
             const barsContainer = document.getElementById('barsContainer');
             if(mode === 'bar') {
                 barsContainer.style.display = 'none';

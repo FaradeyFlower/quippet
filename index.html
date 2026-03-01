@@ -186,7 +186,7 @@
             <div class="grid-select-4">
                 <div class="card selected" onclick="setParticle('none')" id="part-none"><span class="card-icon">🚫</span> Нет</div>
                 <div class="card" onclick="setParticle('tape')" id="part-tape"><span class="card-icon">🎞️</span> Плёнка</div>
-                <div class="card" onclick="setParticle('fire')" id="part-fire"><span class="card-icon">🔥</span> Искры</div>
+                <div class="card" onclick="setParticle('sparks')" id="part-sparks"><span class="card-icon">🔥</span> Искры</div>
                 <div class="card" onclick="setParticle('snow')" id="part-snow"><span class="card-icon">❄️</span> Снег</div>
             </div>
         </div>
@@ -255,7 +255,7 @@
         const particleSources = {
             'none': '',
             'tape': 'tape.gif', 
-            'fire': 'fire.gif',
+            'sparks': 'sparks.gif',
             'snow': 'snow.gif'
         };
 
@@ -278,7 +278,7 @@
         const presets = {
             phonk: { mode: 'bar', color: '#ff0000', vinyl: true, shake: true, shakePower: 30, bars: 15, round: 0, blur: true, blurPower: 20, particle: 'tape' },
             lofi: { mode: 'circle', color: '#ffb6c1', vinyl: true, shake: false, shakePower: 20, bars: 50, round: 20, blur: true, blurPower: 40, particle: 'snow' },
-            neon: { mode: 'spectrum', color: '#00ff00', vinyl: false, shake: true, shakePower: 15, bars: 40, round: 10, blur: true, blurPower: 30, particle: 'fire' },
+            neon: { mode: 'spectrum', color: '#00ff00', vinyl: false, shake: true, shakePower: 15, bars: 40, round: 10, blur: true, blurPower: 30, particle: 'sparks' },
             clean: { mode: 'spectrum', color: '#ffffff', vinyl: false, shake: false, shakePower: 20, bars: 25, round: 20, blur: false, blurPower: 0, particle: 'none' }
         };
 
@@ -304,7 +304,7 @@
         function setParticle(name) {
             state.particle = name;
             
-            ['none', 'tape', 'fire', 'snow'].forEach(p => {
+            ['none', 'tape', 'sparks', 'snow'].forEach(p => {
                 const btn = document.getElementById('part-' + p);
                 if(btn) btn.classList.remove('selected');
             });
@@ -437,5 +437,6 @@
     </script>
 </body>
 </html>
+
 
 

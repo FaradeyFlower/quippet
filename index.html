@@ -185,7 +185,7 @@
             <span class="label">✨ Частицы</span>
             <div class="grid-select-4">
                 <div class="card selected" onclick="setParticle('none')" id="part-none"><span class="card-icon">🚫</span> Нет</div>
-                <div class="card" onclick="setParticle('dust')" id="part-dust"><span class="card-icon">💨</span> Пыль</div>
+                <div class="card" onclick="setParticle('tape')" id="part-tape"><span class="card-icon">🎞️</span> Пыль</div>
                 <div class="card" onclick="setParticle('fire')" id="part-fire"><span class="card-icon">🔥</span> Искры</div>
                 <div class="card" onclick="setParticle('snow')" id="part-snow"><span class="card-icon">❄️</span> Снег</div>
             </div>
@@ -254,7 +254,7 @@
         // 🔥 ТЕПЕРЬ ИСПОЛЬЗУЕМ GIF
         const particleSources = {
             'none': '',
-            'dust': 'dust.gif', 
+            'tape': 'tape.gif', 
             'fire': 'fire.gif',
             'snow': 'snow.gif'
         };
@@ -276,7 +276,7 @@
         resizeCanvas();
 
         const presets = {
-            phonk: { mode: 'bar', color: '#ff0000', vinyl: true, shake: true, shakePower: 30, bars: 15, round: 0, blur: true, blurPower: 20, particle: 'dust' },
+            phonk: { mode: 'bar', color: '#ff0000', vinyl: true, shake: true, shakePower: 30, bars: 15, round: 0, blur: true, blurPower: 20, particle: 'tape' },
             lofi: { mode: 'circle', color: '#ffb6c1', vinyl: true, shake: false, shakePower: 20, bars: 50, round: 20, blur: true, blurPower: 40, particle: 'snow' },
             neon: { mode: 'spectrum', color: '#00ff00', vinyl: false, shake: true, shakePower: 15, bars: 40, round: 10, blur: true, blurPower: 30, particle: 'fire' },
             clean: { mode: 'spectrum', color: '#ffffff', vinyl: false, shake: false, shakePower: 20, bars: 25, round: 20, blur: false, blurPower: 0, particle: 'none' }
@@ -304,7 +304,7 @@
         function setParticle(name) {
             state.particle = name;
             
-            ['none', 'dust', 'fire', 'snow'].forEach(p => {
+            ['none', 'tape', 'fire', 'snow'].forEach(p => {
                 const btn = document.getElementById('part-' + p);
                 if(btn) btn.classList.remove('selected');
             });
@@ -437,3 +437,4 @@
     </script>
 </body>
 </html>
+

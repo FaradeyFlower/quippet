@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Quippet Settings</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Добавляем шрифт Inter для современности -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -15,7 +14,6 @@
             --btn-color: var(--tg-theme-button-color, #3390ec);
             --secondary-bg: var(--tg-theme-secondary-bg-color, #1c1c1e);
             --card-bg: rgba(255, 255, 255, 0.08);
-            --active-border: var(--btn-color);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -28,27 +26,37 @@
             height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* --- PREVIEW AREA --- */
+        /* --- COMPACT TOP HEADER --- */
         .top-pane {
-            flex-shrink: 0; padding: 16px;
-            background: linear-gradient(180deg, var(--bg-color) 0%, rgba(0,0,0,0) 100%);
-            z-index: 10; display: flex; justify-content: center; align-items: center;
+            flex-shrink: 0; 
+            padding: 12px 0;
+            background: rgba(20, 20, 20, 0.85); /* Полупрозрачный фон */
+            backdrop-filter: blur(15px); /* Размытие контента под ним */
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 20; 
+            display: flex; justify-content: center; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            position: relative;
         }
 
         .preview-container {
-            width: 100%; max-width: 280px; aspect-ratio: 9/16;
+            /* 🔥 ГЛАВНОЕ ИЗМЕНЕНИЕ: ФИКСИРОВАННАЯ МАЛЕНЬКАЯ ВЫСОТА */
+            height: 220px; 
+            width: auto; 
+            aspect-ratio: 9/16;
             background: #111;
-            border-radius: 20px; position: relative; overflow: hidden;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.6); 
+            border-radius: 12px; 
+            position: relative; overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5); 
             border: 1px solid rgba(255,255,255,0.1);
-            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: transform 0.2s;
         }
 
         .preview-bg { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop');
             background-size: cover; background-position: center;
-            filter: blur(30px) brightness(0.6); 
+            filter: blur(20px) brightness(0.6); 
             z-index: 0; transition: filter 0.3s ease;
         }
 
@@ -58,48 +66,48 @@
             z-index: 1; pointer-events: none; display: none;
         }
         
+        /* Уменьшили обложку внутри превью */
         .preview-cover {
-            width: 60%; aspect-ratio: 1; background-color: #333;
+            width: 55%; aspect-ratio: 1; background-color: #333;
             position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%);
-            z-index: 2; box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+            z-index: 2; box-shadow: 0 5px 15px rgba(0,0,0,0.6);
             background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop');
-            background-size: cover; transition: border-radius 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background-size: cover; transition: border-radius 0.3s;
         }
         
         .preview-cover.vinyl { border-radius: 50% !important; animation: spin 4s linear infinite; }
         .preview-cover.vinyl::after {
             content: ''; position: absolute; top: 50%; left: 50%; width: 18%; height: 18%;
             background: #111; border-radius: 50%; transform: translate(-50%, -50%); display: block;
-            border: 2px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
         }
         @keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
         
         #vizCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; }
         
-        .preview-text { position: absolute; bottom: 15%; width: 100%; text-align: center; z-index: 4; pointer-events: none; }
-        .p-artist { font-size: 13px; font-weight: 700; color: white; letter-spacing: 0.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
-        .p-track { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 4px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+        /* Уменьшили текст внутри превью */
+        .preview-text { position: absolute; bottom: 12%; width: 100%; text-align: center; z-index: 4; pointer-events: none; }
+        .p-artist { font-size: 10px; font-weight: 700; color: white; text-shadow: 0 1px 5px rgba(0,0,0,0.8); }
+        .p-track { font-size: 8px; color: rgba(255,255,255,0.7); margin-top: 2px; text-shadow: 0 1px 5px rgba(0,0,0,0.8); }
 
         /* --- CONTENT AREA --- */
         .scrollable-content {
-            flex-grow: 1; overflow-y: auto; padding: 20px 16px; padding-bottom: 100px;
+            flex-grow: 1; overflow-y: auto; padding: 16px; padding-bottom: 90px;
             -webkit-overflow-scrolling: touch;
         }
 
         .label { 
-            font-size: 13px; color: var(--hint-color); text-transform: uppercase; 
-            margin-bottom: 10px; margin-left: 4px; display: block; font-weight: 600; letter-spacing: 0.5px;
+            font-size: 12px; color: var(--hint-color); text-transform: uppercase; 
+            margin-bottom: 8px; margin-left: 4px; display: block; font-weight: 600; letter-spacing: 0.5px;
         }
-        .section { margin-bottom: 24px; }
+        .section { margin-bottom: 20px; }
         
-        /* --- CARDS & GRIDS --- */
-        .presets-row { 
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; 
-        }
+        /* --- CARDS --- */
+        .presets-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
         
         .card-btn {
             background: var(--card-bg); 
-            border-radius: 14px; padding: 12px 6px;
+            border-radius: 12px; padding: 10px 4px;
             text-align: center; cursor: pointer; 
             border: 1px solid transparent;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -113,83 +121,75 @@
             color: var(--btn-color);
         }
         
-        .emoji-icon { font-size: 22px; margin-bottom: 6px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
-        .card-name { font-size: 11px; font-weight: 500; line-height: 1.2; }
+        .emoji-icon { font-size: 18px; margin-bottom: 4px; }
+        .card-name { font-size: 10px; font-weight: 500; }
 
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
 
-        /* --- CONTROLS: SWITCH --- */
+        /* --- CONTROLS --- */
         .control-row {
             display: flex; justify-content: space-between; align-items: center;
-            background: var(--card-bg); padding: 14px 16px; border-radius: 16px; 
-            margin-bottom: 8px; font-size: 15px; font-weight: 500;
+            background: var(--card-bg); padding: 12px 14px; border-radius: 14px; 
+            margin-bottom: 6px; font-size: 14px; font-weight: 500;
         }
-        .toggle { position: relative; display: inline-block; width: 46px; height: 26px; }
+        .toggle { position: relative; display: inline-block; width: 42px; height: 24px; }
         .toggle input { opacity: 0; width: 0; height: 0; }
         .slider-switch { 
             position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
-            background-color: #3a3a3c; border-radius: 34px; transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1); 
+            background-color: #3a3a3c; border-radius: 34px; transition: .3s; 
         }
         .slider-switch:before { 
-            position: absolute; content: ""; height: 22px; width: 22px; left: 2px; bottom: 2px; 
-            background-color: white; border-radius: 50%; transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1); 
+            position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 2px; 
+            background-color: white; border-radius: 50%; transition: .3s; 
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         input:checked + .slider-switch { background-color: var(--btn-color); }
-        input:checked + .slider-switch:before { transform: translateX(20px); }
+        input:checked + .slider-switch:before { transform: translateX(18px); }
 
-        /* --- CONTROLS: SLIDER --- */
+        /* --- SLIDERS --- */
         .range-wrapper { 
-            background: var(--card-bg); padding: 16px; border-radius: 16px; 
-            margin-top: 8px; display: none; animation: slideDown 0.3s ease;
+            background: var(--card-bg); padding: 12px; border-radius: 14px; 
+            margin-top: 6px; display: none; animation: slideDown 0.2s ease;
         }
         .range-wrapper.visible { display: block; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .range-header { display: flex; justify-content: space-between; font-size: 13px; color: var(--hint-color); margin-bottom: 10px; font-weight: 500; }
+        .range-header { display: flex; justify-content: space-between; font-size: 12px; color: var(--hint-color); margin-bottom: 8px; }
         
-        input[type=range] {
-            -webkit-appearance: none; width: 100%; background: transparent;
-        }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%;
-            background: white; cursor: pointer; margin-top: -8px; 
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%;
+            background: white; cursor: pointer; margin-top: -7px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%; height: 4px; cursor: pointer;
             background: rgba(255,255,255,0.2); border-radius: 2px;
         }
-        input[type=range]:focus { outline: none; }
 
         /* --- COLOR PICKER --- */
         .color-btn {
-            width: 100%; height: 48px; border-radius: 14px; border: none;
+            width: 100%; height: 44px; border-radius: 14px; border: none;
             background: var(--card-bg); display: flex; align-items: center; justify-content: space-between;
-            padding: 0 16px; font-size: 15px; font-weight: 500; cursor: pointer;
-            position: relative;
+            padding: 0 14px; font-size: 14px; font-weight: 500; cursor: pointer; position: relative;
         }
         .color-preview {
-            width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2);
         }
-        input[type="color"] {
-            position: absolute; opacity: 0; left: 0; top: 0; width: 100%; height: 100%; cursor: pointer;
-        }
+        input[type="color"] { position: absolute; opacity: 0; left: 0; top: 0; width: 100%; height: 100%; }
 
         /* --- MAIN BUTTON --- */
         .bottom-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
-            padding: 16px; 
-            background: linear-gradient(0deg, var(--bg-color) 40%, rgba(0,0,0,0) 100%);
+            padding: 12px 16px 20px 16px; 
+            background: linear-gradient(0deg, var(--bg-color) 60%, rgba(0,0,0,0) 100%);
             z-index: 100;
         }
         .main-btn {
             width: 100%; background: var(--btn-color); color: white; border: none;
-            padding: 16px; border-radius: 14px; font-size: 17px; font-weight: 700;
-            cursor: pointer; box-shadow: 0 8px 20px -5px rgba(51, 144, 236, 0.5);
-            transition: transform 0.1s;
+            padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600;
+            cursor: pointer; box-shadow: 0 5px 15px -3px rgba(51, 144, 236, 0.5);
         }
         .main-btn:active { transform: scale(0.98); }
 
@@ -200,10 +200,9 @@
     <div class="top-pane">
         <div class="preview-container" id="previewBox">
             <div class="preview-bg" id="bgEl"></div>
-            <!-- GIF Слой -->
             <img id="particleImg" class="particle-layer" src="" alt="">
             <div class="preview-cover" id="coverEl"></div>
-            <div class="preview-text"><div class="p-artist">The Weeknd</div><div class="p-track">Starboy</div></div>
+            <div class="preview-text"><div class="p-artist">ARTIST</div><div class="p-track">Track Name</div></div>
             <canvas id="vizCanvas"></canvas>
         </div>
     </div>
@@ -229,22 +228,9 @@
             </div>
         </div>
 
-        <!-- ФОН -->
-        <div class="section">
-            <span class="label">Атмосфера</span>
-            <div class="control-row">
-                <span>💧 Блюр фона</span>
-                <label class="toggle"><input type="checkbox" id="blurCheck" onchange="toggleBlur()"><span class="slider-switch"></span></label>
-            </div>
-            <div class="range-wrapper" id="blurRangeBox">
-                <div class="range-header"><span>Сила размытия</span> <span id="blurVal">30</span></div>
-                <input type="range" min="0" max="100" value="30" id="blurRange" oninput="updateBlurVal(this.value)">
-            </div>
-        </div>
-
         <!-- ЧАСТИЦЫ -->
         <div class="section">
-            <span class="label">Оверлей (Частицы)</span>
+            <span class="label">Частицы</span>
             <div class="grid-4">
                 <div class="card-btn selected" onclick="setParticle('none')" id="part-none"><span class="emoji-icon">🚫</span><span class="card-name">Нет</span></div>
                 <div class="card-btn" onclick="setParticle('tape')" id="part-tape"><span class="emoji-icon">🎞️</span><span class="card-name">Пленка</span></div>
@@ -255,7 +241,7 @@
 
         <!-- ВИЗУАЛИЗАЦИЯ -->
         <div class="section">
-            <span class="label">Визуалайзер</span>
+            <span class="label">Вид спектра</span>
             <div class="grid-3">
                 <div class="card-btn selected" onclick="setMode('spectrum')" id="btn-spectrum"><span class="emoji-icon">📊</span><span class="card-name">Спектр</span></div>
                 <div class="card-btn" onclick="setMode('bar')" id="btn-bar"><span class="emoji-icon">➖</span><span class="card-name">Линия</span></div>
@@ -263,35 +249,41 @@
             </div>
 
             <div class="range-wrapper visible" style="margin-top: 8px;" id="roundContainer">
-                <div class="range-header"><span>Скругление обложки</span> <span id="roundVal">20</span></div>
+                <div class="range-header"><span>Скругление</span> <span id="roundVal">20</span></div>
                 <input type="range" min="0" max="150" value="20" id="roundRange" oninput="updateRound(this.value)">
             </div>
 
             <div class="range-wrapper visible" style="margin-top: 8px;" id="barsContainer">
-                <div class="range-header"><span>Плотность полос</span> <span id="barsVal">25</span></div>
+                <div class="range-header"><span>Плотность</span> <span id="barsVal">25</span></div>
                 <input type="range" min="30" max="120" value="50" id="barsRange" oninput="updateBars(this.value)">
             </div>
         </div>
 
-        <!-- ЦВЕТ -->
+        <!-- ФОН И ЭФФЕКТЫ -->
         <div class="section">
-            <span class="label">Цветовая гамма</span>
-            <div class="color-btn">
-                <span>Цвет визуализации</span>
+            <span class="label">Настройки</span>
+            <div class="color-btn" style="margin-bottom: 8px;">
+                <span>Цвет элементов</span>
                 <div class="color-preview" id="colorPreview" style="background-color: #ffffff;"></div>
                 <input type="color" id="colorInp" value="#ffffff" oninput="updateColor(this.value)">
             </div>
-        </div>
-
-        <!-- ЭФФЕКТЫ -->
-        <div class="section">
-            <span class="label">Доп. Эффекты</span>
+            
             <div class="control-row">
+                <span>💧 Размытие фона</span>
+                <label class="toggle"><input type="checkbox" id="blurCheck" onchange="toggleBlur()"><span class="slider-switch"></span></label>
+            </div>
+            <div class="range-wrapper" id="blurRangeBox">
+                <div class="range-header"><span>Сила блюра</span> <span id="blurVal">30</span></div>
+                <input type="range" min="0" max="100" value="30" id="blurRange" oninput="updateBlurVal(this.value)">
+            </div>
+
+            <div class="control-row" style="margin-top: 8px;">
                 <span>💿 Крутящийся Винил</span>
                 <label class="toggle"><input type="checkbox" id="vinylCheck" onchange="toggleVinyl()"><span class="slider-switch"></span></label>
             </div>
+            
             <div class="control-row">
-                <span>🫨 Тряска (Bass Shake)</span>
+                <span>🫨 Тряска баса</span>
                 <label class="toggle"><input type="checkbox" id="shakeCheck" onchange="toggleShake()"><span class="slider-switch"></span></label>
             </div>
             <div class="range-wrapper" id="shakeRangeBox">
@@ -302,7 +294,7 @@
     </div>
 
     <div class="bottom-bar">
-        <button class="main-btn" onclick="sendData()">Сохранить настройки</button>
+        <button class="main-btn" onclick="sendData()">Применить</button>
     </div>
 
     <script>
@@ -310,24 +302,11 @@
         tg.expand();
 
         let state = { 
-            mode: 'spectrum', 
-            color: '#ffffff', 
-            vinyl: false, 
-            shake: false, 
-            shakePower: 20, 
-            bars: 25, 
-            round: 20,
-            blur: true,
-            blurPower: 30,
-            particle: 'none'
+            mode: 'spectrum', color: '#ffffff', vinyl: false, shake: false, shakePower: 20, 
+            bars: 25, round: 20, blur: true, blurPower: 30, particle: 'none'
         };
 
-        const particleSources = {
-            'none': '',
-            'tape': 'tape.gif', 
-            'sparks': 'sparks.gif',
-            'snow': 'snow.gif'
-        };
+        const particleSources = { 'none': '', 'tape': 'tape.gif', 'sparks': 'sparks.gif', 'snow': 'snow.gif' };
 
         const canvas = document.getElementById('vizCanvas');
         const ctx = canvas.getContext('2d');
@@ -337,9 +316,7 @@
         const partImg = document.getElementById('particleImg');
         const colorPreview = document.getElementById('colorPreview');
 
-        function haptic() {
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-        }
+        function haptic() { if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); }
 
         function resizeCanvas() { 
             const dpr = window.devicePixelRatio || 1;
@@ -379,20 +356,13 @@
         function setParticle(name, doHaptic=true) {
             if(doHaptic) haptic();
             state.particle = name;
-            
             ['none', 'tape', 'sparks', 'snow'].forEach(p => {
                 const btn = document.getElementById('part-' + p);
                 if(btn) btn.classList.remove('selected');
             });
             document.getElementById('part-' + name).classList.add('selected');
-
-            if (name === 'none') {
-                partImg.style.display = 'none';
-                partImg.src = "";
-            } else {
-                partImg.src = particleSources[name];
-                partImg.style.display = 'block';
-            }
+            if (name === 'none') { partImg.style.display = 'none'; partImg.src = ""; } 
+            else { partImg.src = particleSources[name]; partImg.style.display = 'block'; }
         }
 
         function toggleBlur(doHaptic=true) {
@@ -423,58 +393,38 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = state.color;
             ctx.strokeStyle = state.color;
-            
-            // Subtle glow
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = state.color;
+            ctx.shadowBlur = 8; ctx.shadowColor = state.color;
 
             if (state.shake && Math.random() > 0.8) {
-                const offset = (Math.random() - 0.5) * (state.shakePower / 3); 
+                const offset = (Math.random() - 0.5) * (state.shakePower / 4); 
                 previewBox.style.transform = `scale(0.99) translate(${offset}px, ${offset}px)`;
-            } else { 
-                previewBox.style.transform = `scale(1)`; 
-            }
+            } else { previewBox.style.transform = `scale(1)`; }
 
-            const W = canvas.width;
-            const H = canvas.height;
+            const W = canvas.width; const H = canvas.height;
             const groundLevel = H * 0.94; 
 
             if (state.mode === 'spectrum') {
                 const bars = state.bars; 
                 let gap = 2 * dpr; 
-                if (bars > 60) gap = 1 * dpr;
-                if (bars > 90) gap = 0;
-
+                if (bars > 60) gap = 1 * dpr; if (bars > 90) gap = 0;
                 const totalGapW = (bars - 1) * gap;
                 const barW = (W - totalGapW) / bars;
                 const startX = (W - (bars * barW + totalGapW)) / 2;
 
                 for (let i = 0; i < bars; i++) {
                     const h = Math.random() * (H * 0.15) + (H * 0.05); 
-                    // Rounded top bars
-                    const x = startX + i * (barW + gap);
-                    const y = groundLevel - h;
-                    ctx.fillRect(x, y, barW, h);
+                    ctx.fillRect(startX + i * (barW + gap), groundLevel - h, barW, h);
                 }
-
             } else if (state.mode === 'bar') {
                 const time = Date.now();
                 const progress = (time % 4000) / 4000; 
-                ctx.fillRect(0, groundLevel, W * progress, 8 * dpr); // Thicker bar
-                
+                ctx.fillRect(0, groundLevel, W * progress, 8 * dpr);
             } else if (state.mode === 'circle') {
-                const cx = W / 2; 
-                const cy = H * 0.38; 
-                const radius = (W * 0.6) / 2;
-                
+                const cx = W / 2; const cy = H * 0.38; const radius = (W * 0.6) / 2;
                 const spacePerBar = (2 * Math.PI * radius) / state.bars;
-                const calculatedWidth = Math.max(2 * dpr, spacePerBar * 0.8);
-                ctx.lineWidth = calculatedWidth;
-                ctx.lineCap = 'round'; // Smooth ends
-
-                const lines = state.bars;
-                const step = (Math.PI * 2) / lines;
-                
+                ctx.lineWidth = Math.max(2 * dpr, spacePerBar * 0.8);
+                ctx.lineCap = 'round';
+                const lines = state.bars; const step = (Math.PI * 2) / lines;
                 for (let i = 0; i < lines; i++) {
                     const len = (Math.random() * 20 + 5) * dpr;
                     const angle = i * step - (Math.PI / 2);
@@ -493,13 +443,8 @@
             state.mode = mode;
             ['spectrum', 'bar', 'circle'].forEach(m => document.getElementById('btn-' + m).classList.remove('selected'));
             document.getElementById('btn-' + mode).classList.add('selected');
-            
             const barsContainer = document.getElementById('barsContainer');
-            if(mode === 'bar') {
-                barsContainer.style.display = 'none';
-            } else {
-                barsContainer.style.display = 'block';
-            }
+            if(mode === 'bar') barsContainer.style.display = 'none'; else barsContainer.style.display = 'block';
         }
         
         function updateRound(val) {
@@ -507,8 +452,7 @@
             if (!state.vinyl) coverEl.style.borderRadius = (val / 4) + 'px';
         }
         function updateColor(val, doHaptic=false) { 
-            state.color = val; 
-            colorPreview.style.backgroundColor = val;
+            state.color = val; colorPreview.style.backgroundColor = val;
             if(doHaptic) haptic();
         }
         function toggleVinyl(doHaptic=true) {
@@ -526,10 +470,7 @@
         }
         function updateShakeVal(val) { state.shakePower = val; document.getElementById('shakeVal').innerText = val; }
         function updateBars(val) { state.bars = parseInt(val); document.getElementById('barsVal').innerText = val; }
-        function sendData() { 
-            haptic();
-            tg.sendData(JSON.stringify(state)); 
-        }
+        function sendData() { haptic(); tg.sendData(JSON.stringify(state)); }
     </script>
 </body>
 </html>

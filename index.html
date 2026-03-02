@@ -3,38 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Настройки Видео</title>
+    <title>Quippet Settings</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Добавляем шрифт Inter для современности -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: var(--tg-theme-bg-color, #1c1c1e);
+            --bg-color: var(--tg-theme-bg-color, #000000);
             --text-color: var(--tg-theme-text-color, #ffffff);
             --hint-color: var(--tg-theme-hint-color, #8e8e93);
-            --btn-color: var(--tg-theme-button-color, #007aff);
-            --secondary-bg: var(--tg-theme-secondary-bg-color, #2c2c2e);
+            --btn-color: var(--tg-theme-button-color, #3390ec);
+            --secondary-bg: var(--tg-theme-secondary-bg-color, #1c1c1e);
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --active-border: var(--btn-color);
         }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: -apple-system, sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
             margin: 0; padding: 0;
             height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
 
+        /* --- PREVIEW AREA --- */
         .top-pane {
-            flex-shrink: 0; padding: 10px;
-            background-color: var(--bg-color);
-            border-bottom: 1px solid #333;
+            flex-shrink: 0; padding: 16px;
+            background: linear-gradient(180deg, var(--bg-color) 0%, rgba(0,0,0,0) 100%);
             z-index: 10; display: flex; justify-content: center; align-items: center;
         }
 
         .preview-container {
-            height: 38vh; width: auto; aspect-ratio: 9/16;
-            background: #000;
-            border-radius: 12px; position: relative; overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid #444;
-            transition: transform 0.1s;
+            width: 100%; max-width: 280px; aspect-ratio: 9/16;
+            background: #111;
+            border-radius: 20px; position: relative; overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6); 
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .preview-bg { 
@@ -42,97 +49,150 @@
             background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop');
             background-size: cover; background-position: center;
             filter: blur(30px) brightness(0.6); 
-            z-index: 0; 
-            transition: filter 0.2s;
+            z-index: 0; transition: filter 0.3s ease;
         }
 
-        /* 🔥 СЛОЙ ПАРТИКЛОВ (ТЕПЕРЬ ЭТО IMG) */
         .particle-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: cover;
-            mix-blend-mode: screen; /* Черный цвет в GIF станет прозрачным */
-            opacity: 1.0; 
-            z-index: 1; 
-            pointer-events: none;
-            display: none;
+            object-fit: cover; mix-blend-mode: screen; opacity: 1.0; 
+            z-index: 1; pointer-events: none; display: none;
         }
         
         .preview-cover {
-            width: 60%; aspect-ratio: 1; background-color: #555;
+            width: 60%; aspect-ratio: 1; background-color: #333;
             position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%);
-            z-index: 2; box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            z-index: 2; box-shadow: 0 8px 25px rgba(0,0,0,0.6);
             background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop');
-            background-size: cover; transition: border-radius 0.3s;
+            background-size: cover; transition: border-radius 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         
         .preview-cover.vinyl { border-radius: 50% !important; animation: spin 4s linear infinite; }
         .preview-cover.vinyl::after {
-            content: ''; position: absolute; top: 50%; left: 50%; width: 15%; height: 15%;
+            content: ''; position: absolute; top: 50%; left: 50%; width: 18%; height: 18%;
             background: #111; border-radius: 50%; transform: translate(-50%, -50%); display: block;
+            border: 2px solid rgba(255,255,255,0.1);
         }
         @keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
         
         #vizCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; }
         
-        .preview-text { position: absolute; top: 62%; width: 100%; text-align: center; z-index: 4; pointer-events: none; }
-        .p-artist { font-size: 11px; font-weight: bold; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-        .p-track { font-size: 9px; color: #ddd; margin-top: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .preview-text { position: absolute; bottom: 15%; width: 100%; text-align: center; z-index: 4; pointer-events: none; }
+        .p-artist { font-size: 13px; font-weight: 700; color: white; letter-spacing: 0.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+        .p-track { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 4px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
 
+        /* --- CONTENT AREA --- */
         .scrollable-content {
-            flex-grow: 1; overflow-y: auto; padding: 15px; padding-bottom: 90px;
+            flex-grow: 1; overflow-y: auto; padding: 20px 16px; padding-bottom: 100px;
             -webkit-overflow-scrolling: touch;
         }
 
-        .label { font-size: 12px; color: var(--hint-color); text-transform: uppercase; margin-bottom: 6px; display: block; font-weight: 600; }
-        .section { margin-bottom: 18px; }
-        .presets-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
-        .presets-row::-webkit-scrollbar { display: none; }
+        .label { 
+            font-size: 13px; color: var(--hint-color); text-transform: uppercase; 
+            margin-bottom: 10px; margin-left: 4px; display: block; font-weight: 600; letter-spacing: 0.5px;
+        }
+        .section { margin-bottom: 24px; }
         
-        .preset-card {
-            background: var(--secondary-bg); min-width: 70px; padding: 8px;
-            border-radius: 10px; text-align: center; cursor: pointer; border: 2px solid transparent;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        /* --- CARDS & GRIDS --- */
+        .presets-row { 
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; 
         }
-        .preset-card:active { transform: scale(0.95); }
-        .preset-icon { font-size: 20px; margin-bottom: 4px; }
-        .preset-name { font-size: 10px; font-weight: 500; }
-
-        .grid-select { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .grid-select-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
-
-        .card {
-            background: var(--secondary-bg); border-radius: 10px; padding: 8px;
-            text-align: center; cursor: pointer; border: 2px solid transparent; font-size: 11px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .card.selected { border-color: var(--btn-color); background: rgba(0, 122, 255, 0.15); }
-        .card-icon { font-size: 18px; display: block; margin-bottom: 3px; }
         
-        .color-row {
-            display: flex; align-items: center; justify-content: space-between;
-            background: var(--secondary-bg); padding: 8px 12px; border-radius: 10px;
+        .card-btn {
+            background: var(--card-bg); 
+            border-radius: 14px; padding: 12px 6px;
+            text-align: center; cursor: pointer; 
+            border: 1px solid transparent;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: all 0.2s; position: relative; overflow: hidden;
         }
-        input[type="color"] { border: none; width: 30px; height: 30px; background: none; }
-        .switch-row {
+        .card-btn:active { transform: scale(0.96); background: rgba(255,255,255,0.15); }
+        
+        .card-btn.selected { 
+            background: rgba(51, 144, 236, 0.15); 
+            border-color: var(--btn-color); 
+            color: var(--btn-color);
+        }
+        
+        .emoji-icon { font-size: 22px; margin-bottom: 6px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
+        .card-name { font-size: 11px; font-weight: 500; line-height: 1.2; }
+
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+
+        /* --- CONTROLS: SWITCH --- */
+        .control-row {
             display: flex; justify-content: space-between; align-items: center;
-            background: var(--secondary-bg); padding: 10px 12px; border-radius: 10px; margin-bottom: 6px; font-size: 14px;
+            background: var(--card-bg); padding: 14px 16px; border-radius: 16px; 
+            margin-bottom: 8px; font-size: 15px; font-weight: 500;
         }
-        .toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+        .toggle { position: relative; display: inline-block; width: 46px; height: 26px; }
         .toggle input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; border-radius: 34px; transition: .4s; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px; background-color: white; border-radius: 50%; transition: .4s; }
-        input:checked + .slider { background-color: var(--btn-color); }
-        input:checked + .slider:before { transform: translateX(18px); }
-        .range-box { background: var(--secondary-bg); padding: 12px; border-radius: 10px; display: none; margin-top: 6px; }
-        .range-box.visible { display: block; animation: fadeIn 0.3s; }
-        input[type=range] { width: 100%; accent-color: var(--btn-color); margin-top: 8px;}
-        
-        .main-btn {
-            position: absolute; bottom: 15px; left: 15px; right: 15px;
-            background: var(--btn-color); color: white; border: none;
-            padding: 14px; border-radius: 12px; font-size: 16px; font-weight: bold;
-            cursor: pointer; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        .slider-switch { 
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
+            background-color: #3a3a3c; border-radius: 34px; transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1); 
         }
+        .slider-switch:before { 
+            position: absolute; content: ""; height: 22px; width: 22px; left: 2px; bottom: 2px; 
+            background-color: white; border-radius: 50%; transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1); 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input:checked + .slider-switch { background-color: var(--btn-color); }
+        input:checked + .slider-switch:before { transform: translateX(20px); }
+
+        /* --- CONTROLS: SLIDER --- */
+        .range-wrapper { 
+            background: var(--card-bg); padding: 16px; border-radius: 16px; 
+            margin-top: 8px; display: none; animation: slideDown 0.3s ease;
+        }
+        .range-wrapper.visible { display: block; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .range-header { display: flex; justify-content: space-between; font-size: 13px; color: var(--hint-color); margin-bottom: 10px; font-weight: 500; }
+        
+        input[type=range] {
+            -webkit-appearance: none; width: 100%; background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%;
+            background: white; cursor: pointer; margin-top: -8px; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer;
+            background: rgba(255,255,255,0.2); border-radius: 2px;
+        }
+        input[type=range]:focus { outline: none; }
+
+        /* --- COLOR PICKER --- */
+        .color-btn {
+            width: 100%; height: 48px; border-radius: 14px; border: none;
+            background: var(--card-bg); display: flex; align-items: center; justify-content: space-between;
+            padding: 0 16px; font-size: 15px; font-weight: 500; cursor: pointer;
+            position: relative;
+        }
+        .color-preview {
+            width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        input[type="color"] {
+            position: absolute; opacity: 0; left: 0; top: 0; width: 100%; height: 100%; cursor: pointer;
+        }
+
+        /* --- MAIN BUTTON --- */
+        .bottom-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            padding: 16px; 
+            background: linear-gradient(0deg, var(--bg-color) 40%, rgba(0,0,0,0) 100%);
+            z-index: 100;
+        }
+        .main-btn {
+            width: 100%; background: var(--btn-color); color: white; border: none;
+            padding: 16px; border-radius: 14px; font-size: 17px; font-weight: 700;
+            cursor: pointer; box-shadow: 0 8px 20px -5px rgba(51, 144, 236, 0.5);
+            transition: transform 0.1s;
+        }
+        .main-btn:active { transform: scale(0.98); }
+
     </style>
 </head>
 <body>
@@ -140,99 +200,110 @@
     <div class="top-pane">
         <div class="preview-container" id="previewBox">
             <div class="preview-bg" id="bgEl"></div>
-            
-            <!-- 🔥 ТЕПЕРЬ ТУТ IMG ВМЕСТО VIDEO -->
+            <!-- GIF Слой -->
             <img id="particleImg" class="particle-layer" src="" alt="">
-            
             <div class="preview-cover" id="coverEl"></div>
-            <div class="preview-text"><div class="p-artist">ARTIST NAME</div><div class="p-track">Track Title</div></div>
+            <div class="preview-text"><div class="p-artist">The Weeknd</div><div class="p-track">Starboy</div></div>
             <canvas id="vizCanvas"></canvas>
         </div>
     </div>
 
     <div class="scrollable-content">
+        
+        <!-- ПРЕСЕТЫ -->
         <div class="section">
-            <span class="label">✨ Готовые стили</span>
+            <span class="label">Быстрые стили</span>
             <div class="presets-row">
-                <div class="preset-card" onclick="applyPreset('phonk')">
-                    <span class="preset-icon">😈</span><span class="preset-name">Phonk</span>
+                <div class="card-btn" onclick="applyPreset('phonk')">
+                    <span class="emoji-icon">😈</span><span class="card-name">Phonk</span>
                 </div>
-                <div class="preset-card" onclick="applyPreset('lofi')">
-                    <span class="preset-icon">☕️</span><span class="preset-name">Lo-Fi</span>
+                <div class="card-btn" onclick="applyPreset('lofi')">
+                    <span class="emoji-icon">☕️</span><span class="card-name">Lo-Fi</span>
                 </div>
-                <div class="preset-card" onclick="applyPreset('neon')">
-                    <span class="preset-icon">👾</span><span class="preset-name">Neon</span>
+                <div class="card-btn" onclick="applyPreset('neon')">
+                    <span class="emoji-icon">👾</span><span class="card-name">Neon</span>
                 </div>
-                <div class="preset-card" onclick="applyPreset('clean')">
-                    <span class="preset-icon">📄</span><span class="preset-name">Clean</span>
+                <div class="card-btn" onclick="applyPreset('clean')">
+                    <span class="emoji-icon">✨</span><span class="card-name">Clean</span>
                 </div>
             </div>
         </div>
 
+        <!-- ФОН -->
         <div class="section">
-            <span class="label">Фон</span>
-            <div class="switch-row">
-                <span class="switch-label">💧Размытие фона</span>
-                <label class="toggle"><input type="checkbox" id="blurCheck" onchange="toggleBlur()"><span class="slider"></span></label>
+            <span class="label">Атмосфера</span>
+            <div class="control-row">
+                <span>💧 Блюр фона</span>
+                <label class="toggle"><input type="checkbox" id="blurCheck" onchange="toggleBlur()"><span class="slider-switch"></span></label>
             </div>
-            <div class="range-box" id="blurRangeBox">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px; color:#888;"><span>Сила размытия</span> <span id="blurVal">30</span></div>
+            <div class="range-wrapper" id="blurRangeBox">
+                <div class="range-header"><span>Сила размытия</span> <span id="blurVal">30</span></div>
                 <input type="range" min="0" max="100" value="30" id="blurRange" oninput="updateBlurVal(this.value)">
             </div>
         </div>
 
+        <!-- ЧАСТИЦЫ -->
         <div class="section">
-            <span class="label">✨ Частицы</span>
-            <div class="grid-select-4">
-                <div class="card selected" onclick="setParticle('none')" id="part-none"><span class="card-icon">🚫</span> Нет</div>
-                <div class="card" onclick="setParticle('tape')" id="part-tape"><span class="card-icon">🎞️</span> Плёнка</div>
-                <div class="card" onclick="setParticle('sparks')" id="part-sparks"><span class="card-icon">🔥</span> Искры</div>
-                <div class="card" onclick="setParticle('snow')" id="part-snow"><span class="card-icon">❄️</span> Снег</div>
+            <span class="label">Оверлей (Частицы)</span>
+            <div class="grid-4">
+                <div class="card-btn selected" onclick="setParticle('none')" id="part-none"><span class="emoji-icon">🚫</span><span class="card-name">Нет</span></div>
+                <div class="card-btn" onclick="setParticle('tape')" id="part-tape"><span class="emoji-icon">🎞️</span><span class="card-name">Пленка</span></div>
+                <div class="card-btn" onclick="setParticle('sparks')" id="part-sparks"><span class="emoji-icon">🔥</span><span class="card-name">Искры</span></div>
+                <div class="card-btn" onclick="setParticle('snow')" id="part-snow"><span class="emoji-icon">❄️</span><span class="card-name">Снег</span></div>
             </div>
         </div>
 
+        <!-- ВИЗУАЛИЗАЦИЯ -->
         <div class="section">
-            <span class="label">Настройки</span>
-            <div class="grid-select">
-                <div class="card selected" onclick="setMode('spectrum')" id="btn-spectrum"><span class="card-icon">📊</span> Спектр</div>
-                <div class="card" onclick="setMode('bar')" id="btn-bar"><span class="card-icon">➖</span> Линия</div>
-                <div class="card" onclick="setMode('circle')" id="btn-circle"><span class="card-icon">⭕️</span> Круг</div>
+            <span class="label">Визуалайзер</span>
+            <div class="grid-3">
+                <div class="card-btn selected" onclick="setMode('spectrum')" id="btn-spectrum"><span class="emoji-icon">📊</span><span class="card-name">Спектр</span></div>
+                <div class="card-btn" onclick="setMode('bar')" id="btn-bar"><span class="emoji-icon">➖</span><span class="card-name">Линия</span></div>
+                <div class="card-btn" onclick="setMode('circle')" id="btn-circle"><span class="emoji-icon">⭕️</span><span class="card-name">Круг</span></div>
             </div>
 
-            <div class="range-box visible" style="margin-top: 10px;" id="roundContainer">
-                <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;"><span>Скругление обложки</span> <span id="roundVal">20</span></div>
+            <div class="range-wrapper visible" style="margin-top: 8px;" id="roundContainer">
+                <div class="range-header"><span>Скругление обложки</span> <span id="roundVal">20</span></div>
                 <input type="range" min="0" max="150" value="20" id="roundRange" oninput="updateRound(this.value)">
             </div>
 
-            <div class="range-box visible" style="margin-top: 10px;" id="barsContainer">
-                <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;"><span>Плотность спектра</span> <span id="barsVal">25</span></div>
+            <div class="range-wrapper visible" style="margin-top: 8px;" id="barsContainer">
+                <div class="range-header"><span>Плотность полос</span> <span id="barsVal">25</span></div>
                 <input type="range" min="30" max="120" value="50" id="barsRange" oninput="updateBars(this.value)">
             </div>
         </div>
 
+        <!-- ЦВЕТ -->
         <div class="section">
-            <span class="label">Цвет</span>
-            <div class="color-row"><span>Цвет элементов</span><input type="color" id="colorInp" value="#ffffff" oninput="updateColor(this.value)"></div>
+            <span class="label">Цветовая гамма</span>
+            <div class="color-btn">
+                <span>Цвет визуализации</span>
+                <div class="color-preview" id="colorPreview" style="background-color: #ffffff;"></div>
+                <input type="color" id="colorInp" value="#ffffff" oninput="updateColor(this.value)">
+            </div>
         </div>
 
+        <!-- ЭФФЕКТЫ -->
         <div class="section">
-            <span class="label">Эффекты</span>
-            <div class="switch-row">
-                <span class="switch-label">💿 Винил</span>
-                <label class="toggle"><input type="checkbox" id="vinylCheck" onchange="toggleVinyl()"><span class="slider"></span></label>
+            <span class="label">Доп. Эффекты</span>
+            <div class="control-row">
+                <span>💿 Крутящийся Винил</span>
+                <label class="toggle"><input type="checkbox" id="vinylCheck" onchange="toggleVinyl()"><span class="slider-switch"></span></label>
             </div>
-            <div class="switch-row">
-                <span class="switch-label">🫨 Тряска (Shake)</span>
-                <label class="toggle"><input type="checkbox" id="shakeCheck" onchange="toggleShake()"><span class="slider"></span></label>
+            <div class="control-row">
+                <span>🫨 Тряска (Bass Shake)</span>
+                <label class="toggle"><input type="checkbox" id="shakeCheck" onchange="toggleShake()"><span class="slider-switch"></span></label>
             </div>
-            <div class="range-box" id="shakeRangeBox">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px; color:#888;"><span>Сила тряски</span> <span id="shakeVal">20</span></div>
+            <div class="range-wrapper" id="shakeRangeBox">
+                <div class="range-header"><span>Сила тряски</span> <span id="shakeVal">20</span></div>
                 <input type="range" min="5" max="50" value="20" id="shakeRange" oninput="updateShakeVal(this.value)">
             </div>
         </div>
     </div>
 
-    <button class="main-btn" onclick="sendData()">Сохранить настройки</button>
+    <div class="bottom-bar">
+        <button class="main-btn" onclick="sendData()">Сохранить настройки</button>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -251,7 +322,6 @@
             particle: 'none'
         };
 
-        // 🔥 ТЕПЕРЬ ИСПОЛЬЗУЕМ GIF
         const particleSources = {
             'none': '',
             'tape': 'tape.gif', 
@@ -264,8 +334,12 @@
         const coverEl = document.getElementById('coverEl');
         const previewBox = document.getElementById('previewBox');
         const bgEl = document.getElementById('bgEl');
-        // 🔥 Элемент теперь IMG
         const partImg = document.getElementById('particleImg');
+        const colorPreview = document.getElementById('colorPreview');
+
+        function haptic() {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
 
         function resizeCanvas() { 
             const dpr = window.devicePixelRatio || 1;
@@ -283,25 +357,27 @@
         };
 
         function applyPreset(name) {
+            haptic();
             const p = presets[name];
             state = { ...state, ...p };
             
-            setMode(state.mode);
-            updateColor(state.color); document.getElementById('colorInp').value = state.color;
+            setMode(state.mode, false);
+            updateColor(state.color, false); document.getElementById('colorInp').value = state.color;
             
-            document.getElementById('vinylCheck').checked = state.vinyl; toggleVinyl();
-            document.getElementById('shakeCheck').checked = state.shake; toggleShake();
-            document.getElementById('blurCheck').checked = state.blur; toggleBlur();
+            document.getElementById('vinylCheck').checked = state.vinyl; toggleVinyl(false);
+            document.getElementById('shakeCheck').checked = state.shake; toggleShake(false);
+            document.getElementById('blurCheck').checked = state.blur; toggleBlur(false);
 
             updateShakeVal(state.shakePower); document.getElementById('shakeRange').value = state.shakePower;
             updateBars(state.bars); document.getElementById('barsRange').value = state.bars;
             updateRound(state.round); document.getElementById('roundRange').value = state.round;
             updateBlurVal(state.blurPower); document.getElementById('blurRange').value = state.blurPower;
 
-            setParticle(state.particle);
+            setParticle(state.particle, false);
         }
 
-        function setParticle(name) {
+        function setParticle(name, doHaptic=true) {
+            if(doHaptic) haptic();
             state.particle = name;
             
             ['none', 'tape', 'sparks', 'snow'].forEach(p => {
@@ -310,7 +386,6 @@
             });
             document.getElementById('part-' + name).classList.add('selected');
 
-            // 🔥 ЛОГИКА ДЛЯ GIF (намного проще)
             if (name === 'none') {
                 partImg.style.display = 'none';
                 partImg.src = "";
@@ -320,7 +395,8 @@
             }
         }
 
-        function toggleBlur() {
+        function toggleBlur(doHaptic=true) {
+            if(doHaptic) haptic();
             state.blur = document.getElementById('blurCheck').checked;
             document.getElementById('blurRangeBox').classList.toggle('visible', state.blur);
             updateBgStyle();
@@ -338,7 +414,7 @@
         }
         
         document.getElementById('blurCheck').checked = state.blur;
-        toggleBlur();
+        toggleBlur(false);
 
         function draw() {
             const dpr = window.devicePixelRatio || 1;
@@ -347,11 +423,17 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = state.color;
             ctx.strokeStyle = state.color;
+            
+            // Subtle glow
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = state.color;
 
             if (state.shake && Math.random() > 0.8) {
                 const offset = (Math.random() - 0.5) * (state.shakePower / 3); 
-                previewBox.style.transform = `translate(${offset}px, ${offset}px)`;
-            } else { previewBox.style.transform = `none`; }
+                previewBox.style.transform = `scale(0.99) translate(${offset}px, ${offset}px)`;
+            } else { 
+                previewBox.style.transform = `scale(1)`; 
+            }
 
             const W = canvas.width;
             const H = canvas.height;
@@ -369,22 +451,26 @@
 
                 for (let i = 0; i < bars; i++) {
                     const h = Math.random() * (H * 0.15) + (H * 0.05); 
-                    ctx.fillRect(startX + i * (barW + gap), groundLevel - h, barW, h);
+                    // Rounded top bars
+                    const x = startX + i * (barW + gap);
+                    const y = groundLevel - h;
+                    ctx.fillRect(x, y, barW, h);
                 }
 
             } else if (state.mode === 'bar') {
                 const time = Date.now();
                 const progress = (time % 4000) / 4000; 
-                ctx.fillRect(0, groundLevel, W * progress, 6 * dpr);
+                ctx.fillRect(0, groundLevel, W * progress, 8 * dpr); // Thicker bar
                 
             } else if (state.mode === 'circle') {
                 const cx = W / 2; 
                 const cy = H * 0.38; 
                 const radius = (W * 0.6) / 2;
-                const circumference = 2 * Math.PI * radius;
-                const spacePerBar = circumference / state.bars;
+                
+                const spacePerBar = (2 * Math.PI * radius) / state.bars;
                 const calculatedWidth = Math.max(2 * dpr, spacePerBar * 0.8);
                 ctx.lineWidth = calculatedWidth;
+                ctx.lineCap = 'round'; // Smooth ends
 
                 const lines = state.bars;
                 const step = (Math.PI * 2) / lines;
@@ -402,7 +488,8 @@
         }
         draw();
 
-        function setMode(mode) {
+        function setMode(mode, doHaptic=true) {
+            if(doHaptic) haptic();
             state.mode = mode;
             ['spectrum', 'bar', 'circle'].forEach(m => document.getElementById('btn-' + m).classList.remove('selected'));
             document.getElementById('btn-' + mode).classList.add('selected');
@@ -419,24 +506,30 @@
             state.round = parseInt(val); document.getElementById('roundVal').innerText = val;
             if (!state.vinyl) coverEl.style.borderRadius = (val / 4) + 'px';
         }
-        function updateColor(val) { state.color = val; }
-        function toggleVinyl() {
+        function updateColor(val, doHaptic=false) { 
+            state.color = val; 
+            colorPreview.style.backgroundColor = val;
+            if(doHaptic) haptic();
+        }
+        function toggleVinyl(doHaptic=true) {
+            if(doHaptic) haptic();
             state.vinyl = document.getElementById('vinylCheck').checked;
             coverEl.classList.toggle('vinyl', state.vinyl);
             const roundBox = document.getElementById('roundContainer');
             if(state.vinyl) { roundBox.style.display = 'none'; coverEl.style.borderRadius = ''; } 
             else { roundBox.style.display = 'block'; coverEl.style.borderRadius = (state.round / 4) + 'px'; }
         }
-        function toggleShake() {
+        function toggleShake(doHaptic=true) {
+            if(doHaptic) haptic();
             state.shake = document.getElementById('shakeCheck').checked;
             document.getElementById('shakeRangeBox').classList.toggle('visible', state.shake);
         }
         function updateShakeVal(val) { state.shakePower = val; document.getElementById('shakeVal').innerText = val; }
         function updateBars(val) { state.bars = parseInt(val); document.getElementById('barsVal').innerText = val; }
-        function sendData() { tg.sendData(JSON.stringify(state)); }
+        function sendData() { 
+            haptic();
+            tg.sendData(JSON.stringify(state)); 
+        }
     </script>
 </body>
 </html>
-
-
-

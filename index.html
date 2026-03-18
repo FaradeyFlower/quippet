@@ -95,11 +95,11 @@
 
         /* Уменьшили обложку внутри превью */
         .preview-cover {
-            width: 55%;
+            width: 74%;
             aspect-ratio: 1;
             background-color: #333;
             position: absolute;
-            top: 38%;
+            top: 42%;
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 2;
@@ -139,6 +139,7 @@
             opacity: 1;
             transition: opacity 0.5s ease;
             pointer-events: none;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
         }
 
         @keyframes spin {
@@ -159,8 +160,7 @@
         /* Уменьшили текст внутри превью */
         .preview-text {
             position: absolute;
-            bottom: 28%;
-            /* 👈 ИЗМЕНЕНО ТУТ */
+            top: 68%;
             width: 100%;
             text-align: center;
             z-index: 4;
@@ -168,17 +168,19 @@
         }
 
         .p-artist {
-            font-size: 10px;
+            font-size: 6.8px;
             font-weight: 700;
             color: white;
             text-shadow: 0 1px 5px rgba(0, 0, 0, 0.8);
+            line-height: 1.2;
         }
 
         .p-track {
-            font-size: 8px;
+            font-size: 5.2px;
             color: rgba(255, 255, 255, 0.7);
             margin-top: 2px;
             text-shadow: 0 1px 5px rgba(0, 0, 0, 0.8);
+            line-height: 1.2;
         }
 
         /* --- CONTENT AREA --- */
@@ -676,7 +678,7 @@
             } else { previewBox.style.transform = `scale(1)`; }
 
             const W = canvas.width; const H = canvas.height;
-            const groundLevel = H * 0.94;
+            const groundLevel = H * 0.82;
 
             if (state.mode === 'spectrum') {
                 const bars = state.bars;
@@ -687,7 +689,7 @@
                 const startX = (W - (bars * barW + totalGapW)) / 2;
 
                 for (let i = 0; i < bars; i++) {
-                    const h = Math.random() * (H * 0.15) + (H * 0.05);
+                    const h = Math.random() * (H * 0.05) + (H * 0.01);
                     ctx.fillRect(startX + i * (barW + gap), groundLevel - h, barW, h);
                 }
             } else if (state.mode === 'bar') {
@@ -695,13 +697,13 @@
                 const progress = (time % 4000) / 4000;
                 ctx.fillRect(0, groundLevel, W * progress, 8 * dpr);
             } else if (state.mode === 'circle') {
-                const cx = W / 2; const cy = H * 0.38; const radius = (W * 0.6) / 2;
+                const cx = W / 2; const cy = H * 0.42; const radius = (W * 0.74) / 2;
                 const spacePerBar = (2 * Math.PI * radius) / state.bars;
                 ctx.lineWidth = Math.max(2 * dpr, spacePerBar * 0.8);
                 ctx.lineCap = 'round';
                 const lines = state.bars; const step = (Math.PI * 2) / lines;
                 for (let i = 0; i < lines; i++) {
-                    const len = (Math.random() * 20 + 5) * dpr;
+                    const len = (Math.random() * 8 + 2) * dpr;
                     const angle = i * step - (Math.PI / 2);
                     ctx.beginPath();
                     ctx.moveTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);

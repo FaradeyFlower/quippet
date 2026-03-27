@@ -557,6 +557,7 @@
         function cycleLogos() {
             const active = getActiveLogos();
             if (active.length === 0) { logoEl.style.display = 'none'; return; }
+            if (active.length === 1) return;  // только одна площадка — стоит статично
             logoEl.style.opacity = 0;
             setTimeout(() => {
                 currentLogoIdx = (currentLogoIdx + 1) % active.length;

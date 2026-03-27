@@ -401,7 +401,54 @@
             </div>
         </div>
 
-        <!-- 4. ЧАСТИЦЫ -->
+        <!-- 4. ПЛАТФОРМЫ -->
+        <div class="section">
+            <span class="sec-label">Платформы</span>
+            <div class="sblock">
+                <div class="srow">
+                    <div class="srow-left">
+                        <img src="spotify.png" style="width:22px;height:22px;object-fit:contain;border-radius:5px;" onerror="this.style.display='none'">
+                        <span>Spotify</span>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="plat-spotify" checked onchange="togglePlatform('spotify')">
+                        <span class="sw"></span>
+                    </label>
+                </div>
+                <div class="srow">
+                    <div class="srow-left">
+                        <img src="apple.png" style="width:22px;height:22px;object-fit:contain;" onerror="this.style.display='none'">
+                        <span>Apple Music</span>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="plat-apple" checked onchange="togglePlatform('apple')">
+                        <span class="sw"></span>
+                    </label>
+                </div>
+                <div class="srow">
+                    <div class="srow-left">
+                        <img src="VK.png" style="width:22px;height:22px;object-fit:contain;border-radius:5px;" onerror="this.style.display='none'">
+                        <span>VK Музыка</span>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="plat-vk" checked onchange="togglePlatform('vk')">
+                        <span class="sw"></span>
+                    </label>
+                </div>
+                <div class="srow">
+                    <div class="srow-left">
+                        <img src="yandex.png" style="width:22px;height:22px;object-fit:contain;border-radius:5px;" onerror="this.style.display='none'">
+                        <span>Яндекс Музыка</span>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="plat-yandex" checked onchange="togglePlatform('yandex')">
+                        <span class="sw"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. ЧАСТИЦЫ -->
         <div class="section">
             <span class="sec-label">Частицы</span>
             <div class="particle-grid">
@@ -420,7 +467,7 @@
             </div>
         </div>
 
-        <!-- 5. ЭФФЕКТЫ -->
+        <!-- 6. ЭФФЕКТЫ -->
         <div class="section">
             <span class="sec-label">Эффекты</span>
             <div class="sblock">
@@ -476,7 +523,8 @@
             shake: false, shakePower: 20,
             bars: 25, round: 20,
             blur: true, blurPower: 30,
-            particle: 'none'
+            particle: 'none',
+            platforms: ['spotify', 'apple', 'vk', 'yandex']
         };
 
         const particleSources = { none: '', tape: 'tape.gif', sparks: 'sparks.gif', snow: 'snow.gif' };
@@ -491,17 +539,42 @@
         const colorPreview = document.getElementById('colorPreview');
 
         // Logo cycle
-        const logoSources = ['spotify.png', 'apple.png', 'VK.png', 'yandex.png'];
+        const allLogoSources = { spotify: 'spotify.png', apple: 'apple.png', vk: 'VK.png', yandex: 'yandex.png' };
         let currentLogoIdx = 0;
+
+        function getActiveLogos() {
+            return state.platforms.map(p => allLogoSources[p]).filter(Boolean);
+        }
+
+        function updateLogoVisibility() {
+            const active = getActiveLogos();
+            if (active.length === 0) { logoEl.style.display = 'none'; return; }
+            logoEl.style.display = '';
+            if (currentLogoIdx >= active.length) currentLogoIdx = 0;
+            logoEl.src = active[currentLogoIdx];
+        }
+
         function cycleLogos() {
+            const active = getActiveLogos();
+            if (active.length === 0) { logoEl.style.display = 'none'; return; }
             logoEl.style.opacity = 0;
             setTimeout(() => {
-                currentLogoIdx = (currentLogoIdx + 1) % logoSources.length;
-                logoEl.src = logoSources[currentLogoIdx];
+                currentLogoIdx = (currentLogoIdx + 1) % active.length;
+                logoEl.src = active[currentLogoIdx];
+                logoEl.style.display = '';
                 logoEl.style.opacity = 1;
             }, 500);
         }
         setInterval(cycleLogos, 3000);
+
+        // Platform toggle
+        function togglePlatform(name) {
+            haptic();
+            const idx = state.platforms.indexOf(name);
+            if (idx >= 0) state.platforms.splice(idx, 1);
+            else state.platforms.push(name);
+            updateLogoVisibility();
+        }
 
         function haptic() { if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); }
 
@@ -516,10 +589,10 @@
 
         // ── PRESETS ──────────────────────────────────────
         const presets = {
-            phonk: { mode: 'bar',      color: '#ff0000', vinyl: true,  shake: true,  shakePower: 30, bars: 15, round: 0,   blur: true,  blurPower: 20, particle: 'tape'   },
-            lofi:  { mode: 'circle',   color: '#ffb6c1', vinyl: true,  shake: false, shakePower: 20, bars: 50, round: 20,  blur: true,  blurPower: 40, particle: 'snow'   },
-            neon:  { mode: 'spectrum', color: '#00ff00', vinyl: false, shake: true,  shakePower: 15, bars: 40, round: 10,  blur: true,  blurPower: 30, particle: 'sparks' },
-            clean: { mode: 'spectrum', color: '#ffffff', vinyl: false, shake: false, shakePower: 20, bars: 25, round: 20,  blur: false, blurPower: 0,  particle: 'none'   }
+            phonk: { mode: 'bar',      color: '#ff0000', vinyl: true,  shake: true,  shakePower: 30, bars: 15, round: 0,   blur: true,  blurPower: 20, particle: 'tape',   platforms: ['spotify','apple','vk','yandex'] },
+            lofi:  { mode: 'circle',   color: '#ffb6c1', vinyl: true,  shake: false, shakePower: 20, bars: 50, round: 20,  blur: true,  blurPower: 40, particle: 'snow',   platforms: ['spotify','apple','vk','yandex'] },
+            neon:  { mode: 'spectrum', color: '#00ff00', vinyl: false, shake: true,  shakePower: 15, bars: 40, round: 10,  blur: true,  blurPower: 30, particle: 'sparks', platforms: ['spotify','apple','vk','yandex'] },
+            clean: { mode: 'spectrum', color: '#ffffff', vinyl: false, shake: false, shakePower: 20, bars: 25, round: 20,  blur: false, blurPower: 0,  particle: 'none',   platforms: ['spotify','apple','vk','yandex'] }
         };
 
         function applyPreset(name) {
@@ -544,6 +617,12 @@
             updateBlurVal(state.blurPower);   document.getElementById('blurRange').value  = state.blurPower;
 
             setParticle(state.particle, false);
+
+            // Sync platform checkboxes
+            ['spotify','apple','vk','yandex'].forEach(p => {
+                document.getElementById('plat-' + p).checked = state.platforms.includes(p);
+            });
+            updateLogoVisibility();
         }
 
         // ── PARTICLES ─────────────────────────────────────

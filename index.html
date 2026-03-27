@@ -740,7 +740,8 @@
                 const cx = W / 2;
                 const cy = H * 0.42;
                 const radius = (W * 0.74) / 2;
-                ctx.lineWidth = Math.max(2 * dpr, 4 * dpr);
+                const arcPerSlot = (Math.PI * 2 * radius) / state.bars;
+                ctx.lineWidth = Math.min(4 * dpr, Math.max(dpr, arcPerSlot * 0.7));
                 ctx.lineCap   = 'butt';
                 const step = (Math.PI * 2) / state.bars;
                 for (let i = 0; i < state.bars; i++) {
